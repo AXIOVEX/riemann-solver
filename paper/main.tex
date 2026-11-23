@@ -24,12 +24,13 @@
 \title{Certified Log-Concavity of the Riemann--Jacobi Kernel\\
 and a Source Audit of a P\'{o}lya-Type Real-Zero Criterion}
 \author{Tristen Kyle Pierson\\
-  BitConcepts Research\\
+  Axiovex Systems\\
   \small ORCID: \href{https://orcid.org/0009-0003-7269-956X}{0009-0003-7269-956X}}
-\date{June 2026}
+\date{June 2026; revised November 2026}
 
-\newcommand{\doiurl}{\url{https://doi.org/10.5281/zenodo.20465036}}
-\newcommand{\repourl}{\url{https://github.com/BitConcepts/riemann-solver}}
+% Version DOI of the previous version (v2). Update to the v3 DOI at deposit.
+\newcommand{\doiurl}{\url{https://doi.org/10.5281/zenodo.24445687}}
+\newcommand{\repourl}{\url{https://github.com/AXIOVEX/riemann-solver}}
 
 \begin{document}
 \maketitle
@@ -45,20 +46,30 @@ The proof combines an elementary algebraic analysis of the dominant term,
 rigorous interval arithmetic on~$[0,1]$, a no-cancellation certification
 of $(\log\Phi)'' < 0$ on~$[1,3]$, and an explicit monotonicity tail bound for~$u\geq 3$.
 
+The strict log-concavity of the full kernel~$\Phi$ was first proved by
+Csordas~\cite{csordas2015} (Theorem~4.5); the certification given here is
+independent of that proof.
+
 We also audit the commonly cited P\'{o}lya-type bridge from log-concavity of a
 kernel to real-rootedness of its Fourier transform.
 Direct inspection of P\'{o}lya (1927) Satz~I and Satz~II shows that these theorems
 are, respectively, a preservation theorem and a Mellin--Fourier theorem; neither states
 the log-concavity criterion needed to derive the Riemann Hypothesis from the result
 proved here.
-Accordingly, \textbf{no unconditional RH claim is made.}
+More decisively, the criterion is false in general: the kernel
+$K(t) = (5+t^4)e^{-t^2-t^4/1000}$ satisfies all five of its hypotheses, but its
+Fourier transform has non-real zeros (Proposition~\ref{prop:counterexample}).
+Accordingly, \textbf{no unconditional RH claim is made}, and the conditional
+route through the criterion is closed: the criterion cannot be established,
+because it is not true.
 This source audit is part of the contribution: it separates the certified
-log-concavity theorem from an often-assumed but unverified real-rootedness criterion.
+log-concavity theorem from an often-assumed real-rootedness criterion, and
+settles the status of that criterion.
 
-The unconditional contribution of this paper is the certified strict log-concavity
-of~$\Phi$ on~$[0,\infty)$.
-The possible implication to RH is recorded only as a conditional consequence of
-an unsourced P\'{o}lya-type criterion (Hypothetical Criterion~\ref{hcrit:polya_star}).
+The unconditional contributions of this paper are the independent
+interval-arithmetic certification of the strict log-concavity
+of~$\Phi$ on~$[0,\infty)$ and the source audit, including the refutation of
+the criterion.
 The proof of log-concavity is independent of the P\'{o}lya-source audit.
 
 \medskip\noindent
@@ -103,8 +114,9 @@ RH implication.
 
 The paper should be read as a certification of log-concavity, not as a proof of RH.
 The RH consequence appears only in a conditional remark
-(Remark~\ref{thm:rh_conditional}), dependent on a hypothetical criterion not
-verified in the primary source trail.
+(Remark~\ref{thm:rh_conditional}), dependent on a hypothetical criterion that
+is false (Proposition~\ref{prop:counterexample}); the conditional statement is
+therefore vacuous.
 The source audit (Section~\ref{sec:polya_audit_main}) is not needed for the proof
 of Theorem~\ref{thm:main}; it only governs the interpretation of possible RH
 consequences.
@@ -114,8 +126,11 @@ cited log-concavity-to-real-rootedness bridge through P\'{o}lya (1927),
 Csordas--Varga (1989), de~Bruijn (1950), Ilieff (1955), and later literature, and
 find no verified primary-source statement matching
 Hypothetical Criterion~\ref{hcrit:polya_star}.
-In this paper the criterion is consequently treated as an open or unsourced
-dependency, not as an established theorem.
+The audit does not stop at the missing source: in
+Section~\ref{sec:polya} we prove the criterion is false, by an explicit
+counterexample satisfying all five of its hypotheses.
+In this paper the criterion is consequently treated as a refuted
+dependency, not as an established theorem and not as an open problem.
 
 \paragraph{Prior work.}
 The log-concavity of the dominant term~$\varphi_1$ was observed by Csordas and
@@ -126,8 +141,15 @@ by Dimitrov and Lucas~\cite{dimitrov2011} and Griffin, Ono, Rolen, and
 Zagier~\cite{griffin2019}.
 The connection between log-concavity and the de~Bruijn--Newman constant was explored
 by de~Bruijn~\cite{debruijn1950} and Rodgers and Tao~\cite{rodgers2020}.
-The key distinction of this work is verifying log-concavity of the
-\emph{full kernel}~$\Phi$, not just the dominant term.
+Csordas~\cite{csordas2015} proved the strict log-concavity of the
+\emph{full kernel}~$\Phi$ (Theorem~4.5), via the stronger statement that
+$\log\Phi(\sqrt{t})$ is concave in~$t$ (Theorem~4.2(b) of~\cite{csordas2015},
+after Csordas--Varga (1988)).
+The contribution of the present work is therefore not the log-concavity
+theorem itself, but an independent interval-arithmetic certification of it,
+with every estimate derived in Appendix~\ref{sec:appE} and every certificate
+reproducible from the repository, together with the source audit and the
+refutation of the criterion.
 
 \paragraph{Claims intentionally not made.}
 This paper does not claim:
@@ -138,7 +160,10 @@ This paper does not claim:
 \item that Lean verifies RH;
 \item that the interval arithmetic certificates are formalized in Lean;
 \item that Hypothetical Criterion~\ref{hcrit:polya_star} is established in the
-peer-reviewed literature.
+peer-reviewed literature (it is false; Proposition~\ref{prop:counterexample});
+\item that the strict log-concavity of~$\Phi$ is new (it is
+Csordas's theorem~\cite[Theorem~4.5]{csordas2015}; the certification here
+is independent).
 \end{enumerate}
 
 %% =========================================================================
@@ -151,7 +176,8 @@ The kernel~$\Phi$ defined by~\eqref{eq:phi} satisfies:
 \item $\Phi(u) > 0$ for all~$u \geq 0$;
 \item $\Phi(-u) = \Phi(u)$ for all~$u$;
 \item $\Phi \in L^1(\mathbb{R})$;
-\item $\Phi(u) = O\bigl(e^{-\pi e^{2u}}\bigr)$ as~$u \to +\infty$;
+\item $\Phi(u) = O\bigl(e^{-(\pi-\eta) e^{2u}}\bigr)$ as~$u \to +\infty$,
+  for each $0 < \eta < \pi$;
 \item $\Phi$ is real analytic on~$\mathbb{R}$.
 \end{enumerate}
 \end{proposition}
@@ -159,7 +185,13 @@ The kernel~$\Phi$ defined by~\eqref{eq:phi} satisfies:
 \begin{proof}
 Properties~(i)--(iii) are classical; see~\cite[\S2.10]{titchmarsh1986}
 and~\cite[Theorem~A]{csordas1989}.
-Property~(iv) follows from the dominant exponential factor $e^{-\pi e^{2u}}$ in~$\varphi_1$.
+For~(iv): the dominant term satisfies
+$\varphi_1(u) \sim 2\pi^2 e^{9u/2} e^{-\pi e^{2u}}$ as $u \to +\infty$
+(the prefactor $2\pi^2 e^{9u/2}$ grows, so the stronger statement
+$\Phi(u) = O(e^{-\pi e^{2u}})$ printed in earlier versions is false);
+hence $\Phi(u) \sim 8\pi^2 e^{9u/2} e^{-\pi e^{2u}}$, and for each
+$0 < \eta < \pi$ the growing prefactor is absorbed by
+$e^{-\eta e^{2u}}$, giving $\Phi(u) = O(e^{-(\pi-\eta)e^{2u}})$.
 For~(v): fix any $u_0\in\mathbb{R}$.
 For $r = \pi/8$, any $z$ with $|z - u_0| < r$ satisfies
 $\operatorname{Re}(e^{2z}) \geq e^{2(u_0-r)}/\sqrt{2} =: c > 0$.
@@ -222,20 +254,35 @@ For $u \geq 0$: $|R(u)|/\varphi_1(u) < 1/50$, where $R = \sum_{n\geq 2}\varphi_n
 
 \begin{proof}
 $|\varphi_n|/\varphi_1 \leq 2n^4 e^{-\pi(n^2-1)e^{2u}}$ (since $B_n(u)/n^4 < 2$).
-At $u = 0$: $\sum_{n\geq 2} 2n^4 e^{-\pi(n^2-1)} < 0.006 < 1/50$.
+Each majorant term $2n^4 e^{-\pi(n^2-1)e^{2u}}$ is decreasing in~$u$
+(the exponent $-\pi(n^2-1)e^{2u}$ decreases as $e^{2u}$ grows), so the
+sum over $n \geq 2$ is decreasing in~$u$ and its value at $u = 0$ bounds
+all $u \geq 0$:
+at $u = 0$: $\sum_{n\geq 2} 2n^4 e^{-\pi(n^2-1)} < 0.006 < 1/50$.
 \end{proof}
 
 \begin{remark}\label{rem:truncation}
 The interval arithmetic retains $n = 1,\ldots,5$ and omits
 $\delta := 4\sum_{n \geq 6}\varphi_n$.
-Truncation errors on~$[0,1]$:
-$|\delta| \leq 7.03 \times 10^{-43}$,
-$|\delta'| \leq 1.18 \times 10^{-39}$,
-$|\delta''| \leq 1.98 \times 10^{-36}$,
-certified by interval arithmetic.
-At $u = 1$, the dominant cross term $|\delta''\cdot\Phi_5| \approx 1.09 \times 10^{-42}$
-gives total error $\leq 1.15 \times 10^{-42}$.
-Since $|Q_{\Phi_5}| \geq 3.36 \times 10^{-12}$, the safety factor exceeds $2.9 \times 10^{30}$.
+Uniformly on~$[0,1]$, interval arithmetic certifies
+(\texttt{proof/verify\_truncation\_and\_crosscheck.py}):
+$\sup|\delta| \leq 7.13 \times 10^{-43}$,
+$\sup|\delta'| \leq 1.20 \times 10^{-39}$,
+$\sup|\delta''| \leq 2.01 \times 10^{-36}$,
+from explicit majorants on $|\varphi_n^{(k)}|$ for $n \geq 6$
+(growth factors at $u=1$, decay $e^{-\pi n^2}$ at $u=0$).
+Propagating through
+$Q_\Phi - Q_{\Phi_5} = \Phi_5\delta'' + \Phi_5''\delta
+- 2\Phi_5'\delta' + \delta\delta'' - (\delta')^2$
+with the certified enclosures
+$\sup|\Phi_5| \leq 2.65$, $\sup|\Phi_5'| \leq 13.9$,
+$\sup|\Phi_5''| \leq 143$ on~$[0,1]$ gives the uniform bound
+$|Q_\Phi - Q_{\Phi_5}| \leq 5.34 \times 10^{-36}$ on~$[0,1]$.
+Since the certified margin is $|Q_{\Phi_5}| \geq 3.36 \times 10^{-12}$,
+the safety factor exceeds $6 \times 10^{23}$.
+(Earlier versions of this remark propagated the cross terms only at
+$u=1$ and printed a safety factor of $2.9 \times 10^{30}$; that
+derivation was not uniform on~$[0,1]$ and the figure is withdrawn.)
 \end{remark}
 
 %% =========================================================================
@@ -276,7 +323,8 @@ arithmetic and certifies that the upper bound is negative.
 on $[0,1]$, and the \texttt{mpmath.iv} cross-check reproduces the sign
 certification on all 52{,}898 subintervals, with maximum \texttt{mpmath.iv}
 upper bound $-3.36 \times 10^{-12}$.
-Since truncation error $\leq 1.15 \times 10^{-42}$ (Remark~\ref{rem:truncation}),
+Since the uniform truncation error is $\leq 5.34 \times 10^{-36}$
+(Remark~\ref{rem:truncation}),
 $Q_\Phi(u) < 0$ on~$[0,1]$.
 \end{proof}
 
@@ -292,9 +340,9 @@ We certify $(\log\Phi)''(u) < 0$ directly.
 For all $u\in[1,3]$, $|W_{\mathrm{tail}}(u)| \leq B(u)$,
 where $W_{\mathrm{tail}}(u) := (\log\Phi)''(u) - (\log\varphi_1)''(u)$
 and $B(u)$ is the interval-arithmetic upper bound defined in Appendix~\ref{sec:appE}.
-The verifier certifies $B(u) \leq 1.12\times 10^{-23}$ on the full cover of $[1,3]$.
-The sign proof uses $\operatorname{upper}(W_1(I_i)+B(I_i))<0$ on each interval;
-the scalar bound $B\leq 1.12\times 10^{-23}$ is a diagnostic summary.
+The verifier certifies $B(u) \leq 8.54\times 10^{-24}$ on the full cover of $[1,3]$.
+The sign proof uses the Arb ball comparison $W_1(I)+B(I)<0$ on each ball;
+the scalar bound $B\leq 8.54\times 10^{-24}$ is a diagnostic summary.
 
 Complete derivation in Appendix~\ref{sec:appE}.
 \end{lemma}
@@ -311,17 +359,21 @@ numerical constants, not substitutes for the written proof.
 Decompose $(\log\Phi)'' = W_1 + W_{\mathrm{tail}}$ where
 $W_1(u) = -24\pi e^{2u}/h(u)^2 - 4\pi e^{2u}$ is proved negative in
 Theorem~\ref{thm:algebraic}.
-For each $i = 0,\ldots,100$, the verifier
+The verifier
 (\texttt{proof/verify\_ia\_1\_to\_3\_arb.py}, Appendix~\ref{sec:appE})
 certifies by Arb/FLINT ball arithmetic that
-$\operatorname{upper}(W_1(I_i) + B(I_i)) < 0$
-over $I_i = [u_i-0.01,\, u_i+0.01]$, where $B(u)$ is the
-interval-arithmetic upper bound on $|W_{\mathrm{tail}}(u)|$
-certified in Appendix~\ref{sec:appE}, Lemma~\ref{lem:Bsign}.
-Adjacent intervals overlap; their union $[0.99,3.01]\supset[1.0,3.0]$.
+$W_1(I) + B(I) < 0$ (a ball comparison in Arb) on each of 1{,}813
+adaptive balls~$I$ whose union is $[0.99,3.01]\supset[1.0,3.0]$;
+the half-width at left endpoint~$u$ is
+$\min(0.01,\, 0.35/(2\pi e^{2u}))$, so the exponent $-\pi e^{2u}$ of the
+dominant term varies by at most $0.35$ across any one ball.
+Here $B(u)$ is the upper bound on $|W_{\mathrm{tail}}(u)|$
+of Appendix~\ref{sec:appE}, Lemma~\ref{lem:Bsign}, computed from a
+direct enclosure of~$\Delta Q$.
 
-\textbf{Result:} All 101 checks certified; maximum $B \leq 1.12\times 10^{-23}$;
-minimum margin $(-W_1 - B) = 91.3$ at $u=1.0$.
+\textbf{Result:} All 1{,}813 checks certified; maximum
+$B \leq 8.54\times 10^{-24}$;
+minimum margin $(-W_1 - B) = 91.29$ at $u\approx1.0$.
 Since $|W_{\mathrm{tail}}|\leq B$:
 $(\log\Phi)'' = W_1 + W_{\mathrm{tail}} \leq W_1 + B < 0$.
 \end{proof}
@@ -368,7 +420,8 @@ Since $|W_{\mathrm{tail}}|\le C_{\mathrm{tail}}\,e^{4u}\varepsilon^*$,
 Table: $\varepsilon^*(1.0) \approx 1.82\times 10^{-29}$,
 $\varepsilon^*(1.5) \approx 1.96\times 10^{-81}$,
 $\varepsilon^*(2.0) \approx 1.07\times 10^{-222}$,
-$\varepsilon^*(3.0) < 10^{-1636}$.
+$\varepsilon^*(3.0) \leq 1.66\times 10^{-1650}$ (certified,
+\texttt{proof/verify\_weighted\_comparisons.py}).
 \end{proof}
 
 %% =========================================================================
@@ -432,8 +485,11 @@ $C$ denotes a non-vanishing constant, $\gamma$ a real, non-negative constant.
 \end{quote}
 
 \paragraph{Assessment.}
-In modern terms, $\varphi$ preserves real-rootedness of Fourier transforms if and only if
-$\varphi$ belongs to the Laguerre--P\'{o}lya class~$\mathcal{LP}$.
+In modern terms, the universal multipliers are, up to the allowed
+nonzero constant, those whose rotation $\varphi(i\,\cdot)$ belongs to
+the Laguerre--P\'{o}lya class~$\mathcal{LP}$ (the rotation is essential:
+$e^{t^2}$ is a universal multiplier but does not itself belong
+to~$\mathcal{LP}$).
 Satz~I is a \textbf{preservation theorem}: it requires the Fourier transform of the
 input kernel to already have only real zeros---which is precisely the conclusion
 sought for~$\Xi$---and so cannot establish real-rootedness from scratch.
@@ -511,21 +567,26 @@ neither contains the log-concavity criterion.
 \item Satz~I: preservation theorem; directly read and confirmed as mismatch.
 \item Satz~II: Mellin--Fourier theorem; log-concavity does not appear;
   directly read and confirmed as mismatch.
-\item Hilfss\"{a}tze (auxiliary lemmas of P\'{o}lya 1927): The present audit
-  transcribes and analyzes Satz~I and Satz~II only.
-  The auxiliary Hilfss\"{a}tze have not all been fully transcribed in this version.
-  The audit establishes that Satz~I and Satz~II do not contain the log-concavity
-  criterion, but does not by itself rule out the possibility that an auxiliary lemma
-  has been cited elsewhere under the name ``P\'{o}lya's theorem.''
-  Cardon (2002)~\cite{cardon2002} discusses ``P\'{o}lya's Hilfssatz~II'' in the
-  context of Fourier transforms with only real zeros; verification of that specific
-  auxiliary lemma is outstanding.
+\item Hilfss\"{a}tze (auxiliary lemmas): The present audit
+  transcribes and analyzes Satz~I and Satz~II of P\'{o}lya (1927) only.
+  The one auxiliary lemma that has been cited elsewhere under the name
+  ``P\'{o}lya's Hilfssatz~II'' is now identified: it is Lemma~2 of
+  Cardon~\cite{cardon2005}, who sources it to P\'{o}lya (1926)~\cite{polya1926},
+  not to the 1927 Crelle paper.
+  Hilfssatz~II is a shift-sum preservation lemma (for $a > 0$ and $b$ real,
+  if $G$ is a real entire function of genus~0 or~1 with only real zeros,
+  then $e^{ib}G(z+ia) + e^{-ib}G(z-ia)$ has only real zeros); it is not
+  the log-concavity criterion, and the verification caveat carried in
+  earlier versions of this audit is closed.
+  (An earlier draft attributed the Hilfssatz~II discussion to
+  Cardon (2002)~\cite{cardon2002}; that is a distinct paper, on
+  convolution operators.)
 \end{itemize}
 \textbf{Consequence:}
 Peer-reviewed literature (Coffey--Csordas 2013~\cite{csordas2013};
 Csordas 2015~\cite{csordas2015},
 Theorems~3.5--3.7 and introduction, who states ``no known necessary and sufficient
-conditions'') indicates this criterion is most likely an \textbf{open problem}.
+conditions'') indicates this criterion is not a known theorem.
 Csordas (2015), Section~3, proves that within the admissible-kernel framework,
 strict log-concavity is not by itself the known sufficient condition for
 real-rootedness; additional generalized Laguerre inequalities enter the criterion
@@ -533,18 +594,22 @@ real-rootedness; additional generalized Laguerre inequalities enter the criterio
 A 2026 preprint~\cite{gershon2026} attributes a simple version to P\'{o}lya (1927)
 but this cannot be verified against the primary text and is not supported by the
 peer-reviewed record.
-The RH conditional consequence (Remark~\ref{thm:rh_conditional}) remains conditioned
-on a source dependency that has not been matched to a peer-reviewed primary source.
+This paper settles the question the audit opened: the criterion is
+\textbf{false} (Proposition~\ref{prop:counterexample}).
+The RH conditional consequence (Remark~\ref{thm:rh_conditional}) is
+therefore vacuous: its antecedent cannot be established, because the
+criterion it assumes does not hold.
 \textbf{Unconditional contribution:}
-\textbf{Theorem~\ref{thm:main}: certified strict log-concavity of~$\Phi$ on~$[0,\infty)$.}
+\textbf{Theorem~\ref{thm:main}: certified strict log-concavity of~$\Phi$ on~$[0,\infty)$
+(the theorem is Csordas's~\cite[Theorem~4.5]{csordas2015}; the certification
+is independent).}
 
 \medskip\noindent
 Thus the source audit does not merely remove an RH corollary; it identifies
-the exact missing theorem bridge.
-The certified log-concavity result stands independently, while the possible
-RH implication is isolated as a precise open problem: establish or refute
-Hypothetical Criterion~\ref{hcrit:polya_star}, or find a verified replacement
-theorem with matching hypotheses.
+the exact missing theorem bridge and then closes the question: no
+replacement bridge of the same form can exist, because
+Hypothetical Criterion~\ref{hcrit:polya_star} is refuted.
+The certified log-concavity result stands independently.
 }}
 \end{center}
 
@@ -564,12 +629,19 @@ The following primary sources have been examined or identified as candidates.
   Brand\'{e}n--Chass\'{e} confirm Ilieff independently proved the same result as
   de~Bruijn Theorem~1 (LP-class condition on $\phi'(t)$).
 \item \textbf{De Bruijn (1950) Theorem~20}~\cite{debruijn1950}:
-  The final theorem in the paper.  Brand\'{e}n--Chass\'{e} state they ``prove a
+  Brand\'{e}n--Chass\'{e} state they ``prove a
   theorem of de~Bruijn'' [= Theorem~20, by new elementary methods] and separately
   ``extend a theorem of de~Bruijn and Ilieff'' [= Theorem~1], indicating Theorem~20
   is a distinct result from Theorem~1.
-  The full text is paywalled (Project Euclid); the exact statement cannot be
-  confirmed without access.
+  Theorem~20 appears at printed p.~213 of the paper (Duke Math.\ J.\ \textbf{17}
+  (1950), 197--226); it is not the paper's final theorem (Theorem~28 follows
+  at p.~224), and the text is not paywalled: the Version of Record is freely
+  served by the TU/e repository.
+  Theorem~20 states: if all roots of the derivative of the polynomial
+  $f(t) = \sum_1^N q_i t^i$ ($N$ positive and even) are purely imaginary and
+  $q_N > 0$, then $\Psi(z) = \int e^{-f(t)} e^{izt}\,dt$ has real roots only.
+  It is a polynomial-exponent theorem; it has no log-concavity hypothesis
+  and is not the criterion.
 \item \textbf{P\'{o}lya (1930), Quart.\ J.\  Math.\ Oxford 1, 21--34}:
   Contains three conjectures (``Fourier--P\'{o}lya conjecture'') about counting
   nonreal zeros via the behavior of derivatives on the real axis.
@@ -604,9 +676,11 @@ The following primary sources have been examined or identified as candidates.
 The following criterion is the exact theorem bridge that would be needed to derive RH
 from Theorem~\ref{thm:main}.
 We have not matched this statement to P\'{o}lya (1927), Csordas--Varga (1989),
-de~Bruijn (1950), Ilieff (1955), or another peer-reviewed primary source.
+de~Bruijn (1950), Ilieff (1955), or another peer-reviewed primary source;
+and, as Proposition~\ref{prop:counterexample} shows, no such source can
+exist, because the criterion is false.
 
-\begin{hypothetical}[P\'{o}lya-type real-rootedness criterion; unsourced]%
+\begin{hypothetical}[P\'{o}lya-type real-rootedness criterion; false]%
 \label{hcrit:polya_star}
 Let $K : \mathbb{R} \to \mathbb{R}$ be an even function satisfying:
 \begin{enumerate}[label=(\roman*)]
@@ -619,15 +693,87 @@ Let $K : \mathbb{R} \to \mathbb{R}$ be an even function satisfying:
 Then the entire function $F(z) = \int_{-\infty}^{\infty} K(t)\,e^{izt}\,dt$
 has only real zeros.
 
-\medskip\noindent\emph{Status: Not established.}
+\medskip\noindent\emph{Status: FALSE.}
 Direct reading of P\'{o}lya (1927) Satz~I and Satz~II gives a preservation theorem
 and a Mellin--Fourier theorem, respectively; neither states this criterion.
 Csordas--Varga (1989), Theorem~2.2, restates the Mellin--Fourier theorem.
 Peer-reviewed literature (Csordas 2015, Theorems~3.5--3.7) shows that within the
 admissible-kernel framework, strict log-concavity is not by itself the sufficient
 condition for real-rootedness; additional generalized Laguerre inequalities are needed.
-The criterion remains an open source dependency.
+Proposition~\ref{prop:counterexample} proves the criterion false as stated:
+a kernel satisfying all five hypotheses whose Fourier transform has
+non-real zeros.
 \end{hypothetical}
+
+\begin{proposition}[The criterion is false]\label{prop:counterexample}
+Hypothetical Criterion~\ref{hcrit:polya_star} is false.
+The kernel
+\[
+K(t) = (5 + t^4)\,e^{-t^2 - t^4/1000}
+\]
+satisfies all five of its hypotheses, but its Fourier transform
+$F(z) = \int_{-\infty}^{\infty} K(t) e^{izt}\,dt$ has non-real zeros.
+\end{proposition}
+
+\begin{proof}
+\emph{Hypotheses.}
+$K$ is even and positive, and entire, hence real analytic.
+Since $e^{-t^4/1000}$ decays faster than $e^{-|t|^3}$, condition~(iv)
+holds with $\delta = 1$.
+A direct computation gives
+\[
+(\log K)''(t)
+= \frac{-\,5 - 20\,(t^2 - \tfrac32)^2 - 4t^6 - 2t^8}{(5 + t^4)^2}
+  - \frac{3t^2}{250} < 0
+\qquad\text{for all } t,
+\]
+so $K$ is strictly log-concave: condition~(iii) holds.
+
+\emph{Zeros.}
+$F$ is entire of order at most $4/3 < 2$ (the quartic damping), hence of
+genus at most~$1$; $F$ is even, so its Hadamard factorization has no
+linear exponential factor, and $F(0) = m_0 > 0$, where
+$m_{2j} := \int_{-\infty}^{\infty} t^{2j} K(t)\,dt$.
+If all zeros of $F$ were real, the factorization
+$F(z) = m_0 \prod_k (1 - z^2/\alpha_k^2)$ and the expansion
+$F(z) = \sum_j (-1)^j m_{2j} z^{2j} / (2j)!$ would give, with
+$s_1 = \sum_k \alpha_k^{-2}$ and $s_2 = \sum_k \alpha_k^{-4} \geq 0$,
+\[
+\frac{m_2}{2 m_0} = s_1,
+\qquad
+\frac{m_4}{24 m_0} = \frac{s_1^2 - s_2}{2} \leq \frac{s_1^2}{2},
+\qquad\text{hence}\qquad
+m_0 m_4 \leq 3 m_2^2,
+\]
+a necessary condition for real-rootedness.
+The moments violate it.
+With $M_{2j} := \int t^{2j} (5 + t^4) e^{-t^2}\,dt$ the undamped moments
+$M_0 = \tfrac{23}{4}\sqrt{\pi}$, $M_2 = \tfrac{35}{8}\sqrt{\pi}$,
+$M_4 = \tfrac{165}{16}\sqrt{\pi}$, $M_8 = \tfrac{12495}{64}\sqrt{\pi}$:
+the damping factor $e^{-t^4/1000} \leq 1$ gives
+$m_2 \leq M_2$, and $e^{-t^4/1000} \geq 1 - t^4/1000$ gives
+\[
+m_0 \geq M_0 - \tfrac{1}{1000} M_4 = \tfrac{18367}{3200}\sqrt{\pi},
+\qquad
+m_4 \geq M_4 - \tfrac{1}{1000} M_8 = \tfrac{129501}{12800}\sqrt{\pi}.
+\]
+Therefore
+\[
+m_0 m_4 - 3 m_2^2
+\;\geq\;
+\pi\left(\frac{18367}{3200}\cdot\frac{129501}{12800}
+- 3\left(\frac{35}{8}\right)^2\right)
+= \frac{26544867}{40960000}\,\pi \;>\; 0,
+\]
+contradicting the necessary condition.
+Hence $F$ has a non-real zero.
+(Numerically, a zero is located at $z \approx 2.8086 + 1.3359\,i$,
+certified by a winding-number count; and $F(iy) > 0$ for real~$y$,
+since the integrand $K(t)e^{-yt}$ is positive, so the non-real zeros
+are genuinely off-axis.
+Csordas~\cite[Example~3.12]{csordas2015} exhibits the same phenomenon:
+log-concavity alone does not force real-rootedness.)
+\end{proof}
 
 \begin{remark}[Necessity of analyticity]
 Condition~(v) is essential.
@@ -654,8 +800,8 @@ Cond.\ of Hyp.\ Crit.~\ref{hcrit:polya_star} & Verified as & Where proved & Refe
   Prop.~\ref{prop:phi_properties}(iii) & \cite[\S2.10]{titchmarsh1986} \\
 (iii) $(\log K)'' \leq 0$ & $(\log\Phi)'' < 0$ (strict) & Theorem~\ref{thm:main} &
   \S\S\ref{sec:ia}--\ref{sec:tailbound} \\
-(iv) $O(e^{-|t|^{2+\delta}})$ & $\Phi = O(e^{-\pi e^{2u}}) = O(e^{-u^3})$ &
-  Prop.~\ref{prop:phi_properties}(iv) & $u^3/e^{2u}\leq 27/(8e^3)<\pi$ \\
+(iv) $O(e^{-|t|^{2+\delta}})$ & $\Phi = O(e^{-(\pi-\eta) e^{2u}}) = O(e^{-u^3})$ &
+  Prop.~\ref{prop:phi_properties}(iv) & any $0<\eta<\pi$; then $e^{2u}$ outgrows $u^3$ \\
 (v) Real analytic near~$0$ & $\Phi$ real analytic on $\mathbb{R}$ &
   Prop.~\ref{prop:phi_properties}(v) & Weierstrass $M$-test \\
 (evenness) $K(-t)=K(t)$ & $\Phi(-u) = \Phi(u)$ & Prop.~\ref{prop:phi_properties}(ii) &
@@ -674,9 +820,11 @@ The RH implication depends on which form of the P\'{o}lya-type criterion holds.
 
 \paragraph{Branch~A: Strong log-concavity criterion (Hypothetical Criterion~\ref{hcrit:polya_star}).}
 Under this criterion, all five conditions verified for~$\Phi$ (Remark~\ref{rem:polya_hyp})
-yield RH.
-\emph{This criterion is most likely an open conjecture per the peer-reviewed record.
-Current source audit: Verdict D --- source mismatch.}
+would yield RH.
+\emph{This branch is vacuous: the criterion is false
+(Proposition~\ref{prop:counterexample}), so the implication has a false
+antecedent and yields nothing.
+Source audit: Verdict D --- source mismatch.}
 
 \paragraph{Branch~B (Satz~I reading): Preservation theorem.}
 Multiplying by an $\mathcal{LP}$-factor preserves real-rootedness but cannot
@@ -691,26 +839,29 @@ negative zeros, which is a separate non-trivial analytic condition not establish
 \begin{remark}[Conditional RH consequence under Hypothetical Criterion~\ref{hcrit:polya_star}]%
 \label{thm:rh_conditional}
 \textbf{This remark is not an unconditional mathematical consequence of the results
-proved in this paper.}
+proved in this paper.  It is vacuous.}
 
-If Hypothetical Criterion~\ref{hcrit:polya_star} is established as an unconditional result
-(i.e.\ a primary source with matching hypotheses is identified and verified), then the
-conditions verified for~$\Phi$ in Remark~\ref{rem:polya_hyp} yield: the Fourier
+If Hypothetical Criterion~\ref{hcrit:polya_star} held, then the
+conditions verified for~$\Phi$ in Remark~\ref{rem:polya_hyp} would yield: the Fourier
 transform $F(z) = 2\Xi(z)$ has only real zeros, so~$\Xi$ has only real zeros, which
 is equivalent to RH~\cite{titchmarsh1986}.
-This consequence is contingent on the source dependency catalogued in
-Section~\ref{sec:polya_audit_main}.
-\textbf{Since Hypothetical Criterion~\ref{hcrit:polya_star} is not established here,
-no proof of RH is claimed.}
+But the criterion does not hold: Proposition~\ref{prop:counterexample}
+proves it false.
+The implication is therefore vacuous, no route to RH exists through it,
+and \textbf{no proof of RH is claimed.}
+The remark is retained, relabeled, so that the earlier conditional
+framing in the literature trail remains traceable.
 \end{remark}
 
-\paragraph{Open problem isolated by the audit.}
-The source audit reduces the possible RH implication of Theorem~\ref{thm:main}
-to the following independent problem: determine whether
-Hypothetical Criterion~\ref{hcrit:polya_star} is true, or identify a verified
-theorem with comparable hypotheses that applies to~$\Phi$.
-Direct inspection of P\'{o}lya (1927) Satz~I/II and the checked
-Csordas--Varga/de~Bruijn--Ilieff source chain does not establish such a criterion.
+\paragraph{The audit's question, answered.}
+The source audit reduced the possible RH implication of Theorem~\ref{thm:main}
+to the question whether Hypothetical Criterion~\ref{hcrit:polya_star} is true.
+That question is now answered in the negative
+(Proposition~\ref{prop:counterexample}).
+Any future bridge from log-concavity of~$\Phi$ to real-rootedness
+of~$\Xi$ must use additional hypotheses (for instance the generalized
+Laguerre inequalities of Csordas~\cite{csordas2015}); no criterion with
+exactly the five hypotheses above can apply, to~$\Phi$ or to any kernel.
 
 %% =========================================================================
 \section{Proof-Critical Dependencies}\label{sec:deps}
@@ -726,12 +877,12 @@ $\Phi(u) > 0$ for $u \geq 0$ & Cited & \cite[Thm.~A]{csordas1989} & CITED \\
 $\Phi(-u) = \Phi(u)$ & Cited & \cite[\S2.10]{titchmarsh1986} & CITED \\
 $\Phi \in L^1(\mathbb{R})$ & Cited & \cite[\S2.10]{titchmarsh1986} & CITED \\
 $\Phi$ real analytic on $\mathbb{R}$ & Structural & Weierstrass $M$-test & PROVED \\
-$\Phi = O(e^{-\pi e^{2u}})$ & Structural & \texttt{phi1\_decay\_bound} & PROVED \\
+$\Phi = O(e^{-(\pi-\eta) e^{2u}})$, $0<\eta<\pi$ & Structural & \texttt{phi1\_decay\_bound} & PROVED \\
 $Q_\Phi(u) < 0$ on $[0,1]$ & IA cert & Arb/FLINT (primary), mpmath.iv (cross-check) & CERTIFIED \\
 $(\log\Phi)'' < 0$ on $[1,3]$ & IA cert & Arb/FLINT (primary), mpmath.iv (cross-check) & CERTIFIED \\
 $(\log\Phi)'' < 0$ for $u \geq 3$ & Monotonicity & $\varepsilon^*(3)<10^{-1636}$ & PROVED \\
 Hyp.\ Crit.~\ref{hcrit:polya_star} & None & No peer-reviewed source &
-  \textbf{OPEN} \\
+  \textbf{REFUTED} \\
 RH $\Leftrightarrow$ $\Xi$ real zeros & Cited & \cite[\S2.1]{titchmarsh1986} & CITED \\
 \bottomrule
 \end{tabular}
@@ -742,15 +893,16 @@ RH $\Leftrightarrow$ $\Xi$ real zeros & Cited & \cite[\S2.1]{titchmarsh1986} & C
 PROVED = formal (Lean) or elementary argument;
 CERTIFIED = rigorous computational certificate;
 CITED = external theorem with explicit hypothesis verification;
-OPEN / UNSOURCED = no matching peer-reviewed primary source found.
+REFUTED = disproved by the counterexample of
+Proposition~\ref{prop:counterexample}.
 
 \medskip
 \noindent\textbf{Only the PROVED, CERTIFIED, and ordinary CITED entries are used in the
 unconditional proof of Theorem~\ref{thm:main}.
-The OPEN / UNSOURCED item is not used in any unconditional theorem.}
-The OPEN / UNSOURCED entry is not a defect in the proof of Theorem~\ref{thm:main};
+The REFUTED item is not used in any unconditional theorem.}
+The REFUTED entry is not a defect in the proof of Theorem~\ref{thm:main};
 it marks the boundary between the unconditional log-concavity theorem proved here
-and the conditional RH interpretation discussed later.
+and the RH interpretation that the refuted criterion would have supported.
 
 %% =========================================================================
 \section{Falsification Testing}
@@ -828,7 +980,7 @@ Cross-check $(\log\Phi)''<0$ on $[1,3]$ &
   & & \texttt{python proof/verify\_ia\_1\_to\_3.py} \\[3pt]
 Full verification pipeline &
   both &
-  \texttt{verify.py} $\to$ \texttt{verification/proof\_certificate\_v2.json} \\
+  \texttt{verify.py} (7 steps, fail-closed) \\
   & & \texttt{python verify.py} \\[3pt]
 Falsification tests &
   both &
@@ -844,7 +996,12 @@ The Lean formalization is a dependency audit and algebraic-core verification.
 It proves the dominant-term positivity and curvature statements and records the
 interval arithmetic, Fourier representation, classical $\Phi$ properties, and
 the hypothetical P\'{o}lya-type criterion as explicit axioms.
-13~project-specific axioms, 6~proved theorems, 0~\texttt{sorry}.
+13~project-specific axioms; 6~proved auxiliary theorems, plus the
+conditional assembly theorem \texttt{riemann\_hypothesis} proved from
+those axioms; 0~\texttt{sorry}.
+Since the criterion recorded by the axiom \texttt{polya\_theorem} is
+false (Proposition~\ref{prop:counterexample}), the assembly theorem is
+vacuous: it certifies the dependency structure, not RH.
 Machine-checked against Mathlib commit \texttt{a6276f4c} (0~errors, 0~correctness warnings).
 
 \begin{center}\footnotesize
@@ -856,8 +1013,8 @@ Statement & Lean status & Role & Note \\
 \texttt{log\_phi1\_d2\_neg} & proved & algebraic core & unconditional \\
 \texttt{ia\_verification\_0\_to\_1} & axiom & computational cert & certifies $Q_\Phi < 0$ on $[0,1]$ \\
 \texttt{ia\_verification\_1\_to\_3} & axiom & computational cert & certifies $(\log\Phi)'' < 0$ on $[1,3]$ \\
-\texttt{polya\_theorem} & axiom, OPEN / UNSOURCED & hypothetical criterion &
-  not used unconditionally \\
+\texttt{polya\_theorem} & axiom; criterion REFUTED & hypothetical criterion &
+  assembly vacuous; not used unconditionally \\
 \texttt{rh\_iff\_xi\_real} & axiom / cited & conditional only &
   \cite[\S2.1]{titchmarsh1986} \\
 \bottomrule
@@ -875,7 +1032,8 @@ The mpmath.iv certificate uses 52{,}898 subintervals; the Arb/FLINT reproduction
 uses its own interval partition and precision settings, reported in
 \texttt{results/verify\_logconcavity\_arb.json}.
 The extended $[1,3]$ certification avoids catastrophic cancellation by
-working with $(\log\Phi)''$ directly, using 101 overlapping intervals, with Arb/FLINT as primary certificate and
+working with $(\log\Phi)''$ directly, using 1{,}813 adaptive overlapping
+balls, with Arb/FLINT as primary certificate and
 mpmath.iv as cross-check.
 
 \paragraph{Relation to prior claims.}
@@ -889,8 +1047,10 @@ to log-concavity implying real zeros.
 This is wrong: Csordas--Varga~\cite[Ex.~2.1]{csordas1989} explicitly state that
 $\int e^{-t^p}\cos(zt)\,dt$ has only real zeros for every \emph{even integer} $p$,
 confirmed independently by our computation (Attack~27).
-The correct sharp counterexample is $K(t)=e^{-|t|^3}$, which fails real-analyticity
-condition~(v) of Hypothetical Criterion~\ref{hcrit:polya_star} at the origin.
+The kernel $K(t)=e^{-|t|^3}$ is a counterexample only to the criterion
+without its analyticity condition~(v), which it fails at the origin.
+The sharp counterexample, satisfying all five conditions including~(v),
+is $K(t) = (5+t^4)e^{-t^2-t^4/1000}$ (Proposition~\ref{prop:counterexample}).
 
 Contextual implications are in Appendix~\ref{sec:context}.
 
@@ -899,9 +1059,9 @@ Contextual implications are in Appendix~\ref{sec:context}.
 \label{sec:limitations}
 
 \begin{enumerate}[leftmargin=2em,itemsep=2pt]
-\item The log-concavity-to-real-rootedness criterion is not established.
-  Direct source audit gives a mismatch with P\'{o}lya Satz~I/II and
-  Csordas--Varga Theorem~2.2.
+\item The log-concavity-to-real-rootedness criterion is false
+  (Proposition~\ref{prop:counterexample}), and direct source audit gives
+  a mismatch with P\'{o}lya Satz~I/II and Csordas--Varga Theorem~2.2.
   The result proved here is log-concavity of~$\Phi$, not RH.
 \item The interval arithmetic certificates are not formalized in Lean.
   Axioms \texttt{ia\_verification\_0\_to\_1} and \texttt{ia\_verification\_1\_to\_3}
@@ -909,9 +1069,13 @@ Contextual implications are in Appendix~\ref{sec:context}.
   They are external certificates, with Arb/FLINT primary and mpmath.iv cross-checks.
 \item The proof of classical properties of~$\Phi$ relies on standard references.
 \item The work has not undergone specialist peer review.
-\item The auxiliary Hilfss\"{a}tze of P\'{o}lya (1927) have not been fully transcribed.
-  The audit establishes that Satz~I and Satz~II do not contain the log-concavity
-  criterion, but does not rule out an auxiliary lemma.
+\item The auxiliary Hilfss\"{a}tze of P\'{o}lya (1927) have not all been
+  fully transcribed.
+  The one that has been cited under the name ``P\'{o}lya's Hilfssatz~II''
+  is identified and closed (Cardon~\cite{cardon2005}, Lemma~2, sourced to
+  P\'{o}lya (1926)): a shift-sum preservation lemma, not the criterion.
+  The remaining untranscribed Hilfss\"{a}tze cannot rehabilitate the
+  criterion in any case, since the criterion is false.
 \end{enumerate}
 
 %% =========================================================================
@@ -960,11 +1124,11 @@ C4 & $Q_\Phi < 0$ on $[0,1]$ & IA (Arb/FLINT) & CERT & \texttt{verify\_logconcav
 C4b & $Q_\Phi < 0$ on $[0,1]$ & IA (mpmath.iv) & CERT & \texttt{verify\_logconcavity\_rigorous.py} \\
 C5 & $(\log\Phi)'' < 0$ on $[1,3]$ & IA (Arb/FLINT) & CERT & \texttt{verify\_ia\_1\_to\_3\_arb.py} \\
 C5b & $(\log\Phi)'' < 0$ on $[1,3]$ & IA (mpmath.iv) & CERT & \texttt{verify\_ia\_1\_to\_3.py} \\
-C6 & $(\log\Phi)'' < 0$, $u\geq 3$ & Monotonicity & PROVED & \texttt{verify\_algebraic\_core.py} \\
+C6 & $(\log\Phi)'' < 0$, $u\geq 3$ & Monotonicity & PROVED & \texttt{verify\_weighted\_comparisons.py} \\
 C7 & $\Phi$ real analytic & Structural & PROVED & Weierstrass $M$-test \\
-C8 & $\Phi = O(e^{-\pi e^{2u}})$ & Structural & PROVED & \texttt{phi1\_decay\_bound} \\
+C8 & $\Phi = O(e^{-(\pi-\eta) e^{2u}})$ & Structural & PROVED & \texttt{phi1\_decay\_bound} \\
 C9 & Hyp.\ Crit.~\ref{hcrit:polya_star} & None &
-  \textbf{OPEN} & No peer-reviewed source \\
+  \textbf{REFUTED} & Prop.~\ref{prop:counterexample} \\
 C10 & RH $\Leftrightarrow$ $\Xi$ real zeros & Cited & CITED & \cite[\S2.1]{titchmarsh1986} \\
 \bottomrule
 \end{tabular}
@@ -974,7 +1138,7 @@ C4/C5 are primary, C4b/C5b are cross-checks.\normalsize
 
 \noindent\textbf{Only C1--C8 and C10 are used in the unconditional proof of
 Theorem~\ref{thm:main}.
-Item~C9 (OPEN / UNSOURCED) is not used in any unconditional theorem.}
+Item~C9 (REFUTED) is not used in any unconditional theorem.}
 
 \paragraph{Proof-critical fields in \texttt{results/verify\_ia\_1\_to\_3\_arb.json}.}
 The following fields are directly cited in Appendix~\ref{sec:appE}:
@@ -982,15 +1146,17 @@ The following fields are directly cited in Appendix~\ref{sec:appE}:
 \begin{verbatim}
 {
   "claim": "(log Phi)''(u) < 0 on [1,3]",
-  "method": "Arb/FLINT ball arithmetic via python-flint",
+  "method": "Arb/FLINT ball arithmetic via python-flint; direct DeltaQ
+             enclosure (finite sum n=1..10) plus explicit derivative-aware
+             tail majorants for n>10; sign test (W_1 + B) < 0 in Arb",
   "coverage": "[0.99,3.01]",
-  "intervals_checked": 101,
+  "intervals_checked": 1813,
   "precision_bits": 256,
   "finite_terms": 10,
-  "tail_allowance_B": "1e-800",
-  "tail_bound_n_gt_10": "< 1e-900",
-  "max_B_upper": "1.031013e-23",
-  "minimum_margin": "9.129235e+01",
+  "tail_allowance_B": "6.55494e-1174",
+  "tail_bound_n_gt_10": "|R''| tail < 6.55494e-1174; eps* tail < 1.78467e-2515",
+  "max_B_upper": "8.538902e-24",
+  "minimum_margin": "9.129797e+01",
   "passed": true
 }
 \end{verbatim}
@@ -1008,9 +1174,9 @@ Summary of far-tail analytic bound:
 {
   "far_tail_claim": "|Wtail(u)| <= 2600 * e^{4u} * eps_star(u) for u >= 3",
   "C_tail": 2600,
-  "eps_star_3_upper": "< 1e-1636",
+  "eps_star_3_upper": "1.655889e-1650",
   "far_tail_margin_at_3": "W1(3) < -1000, C_tail*e^12*eps_star(3) < 1e-1629",
-  "analytic_proof": "Appendix E.6",
+  "analytic_proof": "Appendix E.7",
   "passed": true
 }
 \end{verbatim}
@@ -1052,8 +1218,8 @@ $f$ for $t>0$, real-valued, abs.\ integrable & Even $K > 0$, in $L^1$ & Props~(i
 $|f(t)|<Be^{-t^{1+\beta}}$ & $K = O(e^{-|t|^{2+\delta}})$, $\delta>0$ & Prop.~(iv) \\
 $f$ analytic near $t=0$ & $K$ real analytic near origin & Prop.~(v) \\
 \textbf{$H(z)$ has only real negative zeros} &
-  \textbf{Log-concavity $(\log K)''\leq 0$} &
-  Theorems~\ref{thm:ia},\ref{thm:extended},\ref{thm:perturbation_tail} \\
+  \textbf{$H(z)$ has only real negative zeros} &
+  Not established for~$\Phi$ \\
 Conc: $\int f(t^{2q})e^{izt}dt$ has real zeros &
   Conc: $\int K(t)e^{izt}dt$ has real zeros & --- \\
 \bottomrule
@@ -1071,11 +1237,14 @@ the log-concavity criterion, and Csordas--Varga (1989) Theorem~2.2 is P\'{o}lya 
 \item[$\square$] The paper never states or implies that RH is proved.
 \item[$\square$] The log-concavity theorem (Theorem~\ref{thm:main}) is clearly
   identified as the main unconditional result.
-\item[$\square$] The P\'{o}lya-type criterion is labeled hypothetical/open/unsourced
-  (Hypothetical Criterion~\ref{hcrit:polya_star}), not as an established theorem.
+\item[$\square$] The P\'{o}lya-type criterion is labeled hypothetical and refuted
+  (Hypothetical Criterion~\ref{hcrit:polya_star},
+  Proposition~\ref{prop:counterexample}), not as an established theorem.
 \item[$\square$] Satz~I and Satz~II are transcribed and translated
   (Section~\ref{sec:polya_audit_main}).
-\item[$\square$] The uninspected Hilfss\"{a}tze are explicitly marked as uninspected
+\item[$\square$] The Hilfssatz~II citation trail is closed
+  (Cardon~\cite{cardon2005}, Lemma~2; P\'{o}lya (1926)); the remaining
+  uninspected Hilfss\"{a}tze are explicitly marked as uninspected
   (Section~\ref{sec:verdict}).
 \item[$\square$] The $[1,3]$ perturbation proof is complete in Appendix~\ref{sec:appE}.
 \item[$\square$] All certificate hashes are full SHA256 hashes (Appendix~\ref{sec:cert}).
@@ -1135,26 +1304,21 @@ Expand $Q_{\Phi_{\mathrm{red}}} = (\varphi_1''+R'')(\varphi_1+R) - (\varphi_1'+R
 \]
 \end{proof}
 
-\subsection{Explicit derivative formulas and certified bounds on $[1,3]$}
+\subsection{Explicit derivative formulas on $[1,3]$}
 
-The following lemma states the exact closed-form derivatives used in the
-interval-arithmetic certification.  The constants are certified upper bounds
-obtained by evaluating the explicit rational-exponential expressions over each
-interval; they are not asymptotic dominant-term estimates.
+The certification evaluates the exact closed-form derivatives below
+directly in ball or interval arithmetic; no derivative-ratio bounds are
+used anywhere in the $[1,3]$ certificate.
+(An earlier version of this appendix stated uniform bounds
+$|\varphi_n'| \leq 4\,n^4 e^{-\pi(n^2-1)e^{2u}}|\varphi_1|$ and
+$|\varphi_n''| \leq 8\,n^4 e^{-\pi(n^2-1)e^{2u}}|\varphi_1|$; those
+bounds are false --- the true ratios grow like $n^6$ and $n^8$ ---
+and the lemma asserting them has been removed.  Nothing in the
+certificate depended on them: the code has always evaluated the closed
+forms directly.)
 
-\begin{lemma}[Certified derivative-ratio bounds on {$[1,3]$}]\label{lem:derivbounds}
-For $n \geq 2$, $u \in [1,3]$, and $k \in \{0,1,2\}$:
-\[
-|\varphi_n^{(k)}(u)| \leq D_k \cdot n^4 \cdot e^{-\pi(n^2-1)e^{2u}}
-  \cdot |\varphi_1(u)|,
-\]
-where $D_0 = 2$ (holds for all $u \geq 0$ by Proposition~\ref{prop:tail_ratio}),
-and $D_1$, $D_2$ are interval-certified upper bounds over $[1,3]$.
-Only the restriction $u\in[1,3]$ is used in Theorem~\ref{thm:extended}.
-\end{lemma}
-
-\begin{proof}
-The exact closed-form expressions are:
+\begin{lemma}[Closed-form derivatives]\label{lem:derivbounds}
+For every $n \geq 1$ and all $u$:
 \[
 g_n(u) = 2\pi^2 n^4 e^{9u/2} - 3\pi n^2 e^{5u/2}, \quad
 g_n'(u) = 9\pi^2 n^4 e^{9u/2} - \tfrac{15}{2}\pi n^2 e^{5u/2},
@@ -1175,55 +1339,63 @@ This gives the exact relative-derivative expressions:
 \frac{\varphi_n''}{\varphi_n} = \frac{g_n''}{g_n}
   - 4\pi n^2 e^{2u}\frac{g_n'}{g_n} - 4\pi n^2 e^{2u} + 4\pi^2 n^4 e^{4u}.
 \]
+\end{lemma}
 
-For $k=0$: $|\varphi_n|/|\varphi_1| = (|g_n|/|g_1|)\cdot(E_n/E_1)
+\begin{proof}
+Each identity is the product rule applied to $\varphi_n = g_n E_n$
+with the displayed derivatives of $g_n$ and $E_n$; the relative forms
+follow by dividing by $\varphi_n = g_n E_n$.
+\end{proof}
+
+For $k=0$ there is a clean ratio bound, used in
+Lemma~\ref{lem:Wtail_bound}: $|\varphi_n|/|\varphi_1|
+= (|g_n|/|g_1|)\cdot(E_n/E_1)
 \leq 2n^4 e^{-\pi(n^2-1)e^{2u}}$ since $|g_n/g_1| \leq 2n^4$
 (Proposition~\ref{prop:tail_ratio}).
 
-For $k=1,2$: the verifier evaluates the exact rational-exponential expressions
-for $\varphi_n'/\varphi_1$ and $\varphi_n''/\varphi_1$ by interval arithmetic
-(\texttt{phi\_n\_all\_iv} in \texttt{verify\_ia\_1\_to\_3.py})
-using the formulas above, with no asymptotic approximation.
-The resulting certified global upper bounds over $[1,3]$ give $D_1 \leq 4$ and
-$D_2 \leq 8$.
-\end{proof}
-
-The infinite range $n\geq 2$ is handled by splitting into a finite certified part
-and an analytic tail.
-The verifier evaluates the explicit expressions for $n=2,\ldots,10$ directly
-on each interval (\texttt{finite\_terms = 10} in the JSON output).
-For $n > 10$ and $u \geq 1$:
-\[
-n^4 e^{-\pi(n^2-1)e^{2u}} \leq n^4 e^{-\pi(n^2-1)e^2} \leq n^4 e^{-120\pi e^2}.
-\]
-For $n=11$, this gives $n^4 e^{-120\pi e^2} < 10^{-1200}$; the remaining series
-converges rapidly and the total tail contribution to $B(u)$ is below $10^{-900}$
-(recorded as \texttt{tail\_bound\_n\_gt\_10} in the JSON output).
-To see that the infinite sum is controlled, note that for $x \geq 11$ the function
-$x^4 e^{-\pi(x^2-1)e^2}$ is strictly decreasing, since
-\[
-\frac{d}{dx}\log\bigl(x^4 e^{-\pi(x^2-1)e^2}\bigr)
-= \frac{4}{x} - 2\pi e^2 x < 0.
-\]
-Therefore
-\[
-\sum_{n > 10} n^4 e^{-\pi(n^2-1)e^2}
-\leq 11^4 e^{-120\pi e^2}
-  + \int_{11}^{\infty} x^4 e^{-\pi(x^2-1)e^2}\,dx
-< 10^{-900},
-\]
-as certified in the JSON field \texttt{tail\_bound\_n\_gt\_10}.
+The infinite range $n\geq 2$ is handled by splitting into a finite
+evaluated part and an explicit majorant tail.
+The verifier evaluates the explicit expressions for $n=1,\ldots,10$
+directly on each ball (\texttt{finite\_terms = 10} in the JSON output).
+For $n > 10$ and $u \in [0.99, 3.01]$, the code bounds
+$|\varphi_n^{(k)}(u)| \leq C_k\, n^{4+2k} e^{9\cdot 3.01/2}
+e^{-\pi n^2 e^{2\cdot 0.99}}$ with explicit constants
+$C_0 = 30$, $C_1 = 100 + 60\pi e^{6.02}$,
+$C_2 = 460 + 460\pi e^{6.02} + 30\,(4\pi e^{6.02} + 4\pi^2 e^{12.04})$,
+obtained from the displayed formulas by the triangle inequality
+(growth factors at the right endpoint, decay at the left).
+The majorants are summed for $n = 11,\ldots,80$ in ball arithmetic,
+and the tail beyond $n = 80$ is at most twice the first neglected
+majorant, since the majorant ratio
+$((n{+}1)/n)^{4+2k} e^{-\pi(2n+1)e^{1.98}}$ is certified $< 1/2$ at
+$n = 80$.
+The resulting allowances are
+$\tau_0 \leq 6.67\times 10^{-1185}$,
+$\tau_1 \leq 2.09\times 10^{-1179}$,
+$\tau_2 \leq 6.56\times 10^{-1174}$
+for $|\sum_{n>10}\varphi_n^{(k)}|$, $k = 0,1,2$;
+the $\varepsilon^*$ tail ($n > 15$) is bounded by
+$1.79\times 10^{-2515}$ by the same method.
+(An earlier version asserted a $10^{-900}$ tail bound in the JSON
+metadata without computing it; the bounds above are the ones the code
+actually evaluates.)
 
 \begin{corollary}\label{cor:Rbounds}
-For $k=0,1,2$ and $u \in [1,3]$:
-$|R^{(k)}(u)| \leq D_k \varepsilon^*(u) |\varphi_1(u)|$.
+For all $u \geq 0$: $|R(u)| \leq \varepsilon^*(u)\,|\varphi_1(u)|$.
 \end{corollary}
 
+\begin{proof}
+$|R(u)| \leq \sum_{n\geq2}|\varphi_n(u)|
+\leq \sum_{n\geq2} 2n^4 e^{-\pi(n^2-1)e^{2u}}|\varphi_1(u)|
+= \varepsilon^*(u)|\varphi_1(u)|$ by the $k=0$ ratio bound.
+\end{proof}
+
 \noindent\emph{Note.}
-Corollary~\ref{cor:Rbounds} bounds $|R^{(k)}|$ relative to~$|\varphi_1|$ (not~$|\varphi_1^{(k)}|$).
-This is the form used in Lemma~\ref{lem:Wtail_bound}; the $\Delta Q$ term in that lemma is
-bounded directly by interval arithmetic in Lemma~\ref{lem:Bsign}, not through
-the derivative-ratio estimates in Corollary~\ref{cor:Rbounds}.
+Only the $k=0$ bound of Corollary~\ref{cor:Rbounds} is used
+(in Lemma~\ref{lem:Wtail_bound}).
+The $\Delta Q$ term in that lemma is enclosed directly from its
+definition in Lemma~\ref{lem:Bsign}, not through derivative-ratio
+estimates for $R'$ or $R''$.
 
 \subsection{Bounding $W_{\mathrm{tail}}$}
 
@@ -1245,64 +1417,94 @@ W_{\mathrm{tail}}
 Since $Q_{\varphi_1}<0$, $R>0$: both terms satisfy
 $|W_{\mathrm{tail}}| \leq {|\Delta Q|}/{\varphi_1^2} + |W_1|\cdot(2\varphi_1 R+R^2)/\varphi_1^2$,
 where we used $\Phi_{\mathrm{red}}^2 \geq \varphi_1^2$.
-Since $R \leq \varepsilon^*\varphi_1/2$ and $R^2 \leq \varphi_1 R$:
+Since $R \leq \varepsilon^*\varphi_1$ (Corollary~\ref{cor:Rbounds}) and
+$R \leq \varphi_1$ (as $\rho \leq 1/50$), we have $R^2 \leq \varphi_1 R$ and
 $(2\varphi_1 R+R^2)/\varphi_1^2 \leq 3R/\varphi_1 \leq 3\varepsilon^*$.
 \end{proof}
 
 \subsection{Interval-arithmetic certificate on $[1,3]$}
 
 \begin{lemma}[Interval-arithmetic certificate]\label{lem:Bsign}
-For every $u\in[1,3]$, the interval-arithmetic upper bound $B(u)$ satisfies:
+For every $u\in[1,3]$, the ball-arithmetic upper bound $B(u)$ satisfies:
 \[
-B(u) \leq 1.12\times 10^{-23},
+B(u) \leq 8.54\times 10^{-24},
 \]
 and the sign certificate holds:
 \[
-\operatorname{upper}\bigl(W_1(I_i) + B(I_i)\bigr) < 0
+W_1(I) + B(I) < 0
 \]
-for every interval $I_i = [u_i-0.01, u_i+0.01]$ in the cover $\{I_0,\ldots,I_{100}\}$
-of $[0.99, 3.01]$.
+(a comparison of Arb balls) for every ball $I$ in the adaptive cover of
+$[0.99, 3.01]$ described below.
 
-This is a finite interval-arithmetic certificate.
+This is a finite ball-arithmetic certificate.
 The expressions being enclosed are the explicit closed-form formulas
 for $\Delta Q$, $\varphi_1$, $\varepsilon^*$, and $W_1$ stated above.
-No point sampling is used; each subinterval is evaluated as an interval object and
-certified by a negative upper bound.
+No point sampling is used; each ball is evaluated as a ball object and
+certified by a negative Arb comparison.
 \end{lemma}
 
 \begin{proof}[Certificate details]
-For each $i=0,\ldots,100$, the Arb/FLINT verifier
-(\texttt{proof/verify\_ia\_1\_to\_3\_arb.py}, function \texttt{certify\_checkpoint\_arb}):
+The Arb/FLINT verifier
+(\texttt{proof/verify\_ia\_1\_to\_3\_arb.py}, function \texttt{certify\_checkpoint\_arb})
+works on an adaptive grid of 1{,}813 balls covering $[0.99, 3.01]$:
+the half-width at left endpoint~$u$ is
+$\min(0.01,\, 0.35/(2\pi e^{2u}))$, so the exponent $-\pi e^{2u}$ of the
+dominant term varies by at most $0.35$ across any one ball and the ball
+evaluation of $\varphi_1$ stays positive and tight on the whole range.
+On each ball $I$:
 \begin{enumerate}[leftmargin=2em,itemsep=1pt]
-\item Computes $\Delta Q(I_i)$ by interval arithmetic using the explicit formulas
-  for $\varphi_n$, $\varphi_n'$, $\varphi_n''$ (Lemma~\ref{lem:derivbounds})
-  summing $n=1,\ldots,10$.
-\item Computes $\varphi_1(I_i)^2$, $\varepsilon^*(I_i)$, and $W_1(I_i)$ by interval arithmetic.
-\item Evaluates $B(I_i) = |\Delta Q(I_i)|/\varphi_1(I_i)^2 + 3\varepsilon^*(I_i)|W_1(I_i)|$.
-\item Certifies $\operatorname{upper}(W_1(I_i) + B(I_i)) < 0$.
+\item Evaluates $\varphi_1, \varphi_1', \varphi_1''$ and the finite tail
+  sums $A = \sum_{n=2}^{10}\varphi_n$ (with derivatives) as Arb balls
+  from the closed forms of Lemma~\ref{lem:derivbounds}.
+\item Encloses $\Delta Q$ directly from its definition
+  (Lemma~\ref{lem:deltaQ}) applied to the finite sums, and adds the
+  $n > 10$ tail contribution through the explicit allowances
+  $\tau_0, \tau_1, \tau_2$ of the derivative-formulas subsection above:
+  $|\Delta Q| \leq |\Delta Q_{\mathrm{fin}}|
+  + \tau_2|\varphi_1| + |\varphi_1''|\tau_0 + 2|\varphi_1'|\tau_1
+  + \tau_2|A| + |A''|\tau_0 + 2|A'|\tau_1 + \tau_2\tau_0 + \tau_1^2$,
+  every factor a rigorous \texttt{abs\_upper} ball bound.
+\item Evaluates $\varepsilon^*(I)$ as the finite ball sum $n = 2,\ldots,15$
+  plus the explicit tail allowance $1.79\times 10^{-2515}$, and
+  $W_1(I)$ from its closed form.
+\item Forms the point bound
+  $B(I) = |\Delta Q|/\mathrm{lower}(\varphi_1)^2
+  + 3\,\mathrm{upper}(\varepsilon^*)\,|W_1|$
+  and certifies the Arb ball comparison $W_1(I) + B(I) < 0$.
 \end{enumerate}
-All 101 checkpoints pass.
-Maximum certified $B$ upper bound: $1.031013\times 10^{-23}$ (at $u=1.0$).
-Minimum margin $(-W_1 - B)$: $91.29$ (at $u=1.0$).
+All 1{,}813 checkpoints pass.
+Maximum certified $B$ upper bound: $8.54\times 10^{-24}$
+(at the leftmost checkpoint, $u\approx1.0$).
+Minimum margin $(-W_1 - B)$: $91.29$ (at $u\approx1.0$).
 Output: \texttt{results/verify\_ia\_1\_to\_3\_arb.json},
 SHA256:
 
-{\small\verb|06C720F1FDD74F26E32735E93DCE9E118F951E0CC637A2111E029E7C424DBE72|}
+{\small\verb|FROZEN-AT-FREEZE|}
 
-\noindent The previous \texttt{mpmath.iv} output
-\texttt{results/verify\_ia\_1\_to\_3.json}
-is retained as an independent cross-check
+\noindent The \texttt{mpmath.iv} verifier
+\texttt{proof/verify\_ia\_1\_to\_3.py} is an independent cross-check
+(101 uniform checkpoints; it encloses the same $\Delta Q$ with the same
+majorant tails in interval arithmetic): maximum $B \leq 1.12\times 10^{-23}$,
+minimum margin $91.29$; output \texttt{results/verify\_ia\_1\_to\_3.json}
 (SHA256 in Appendix~\ref{sec:cert}).
+
+\noindent\emph{History.}
+Earlier versions of this certificate evaluated a surrogate bound
+($2500\,e^{4u}\varepsilon^* + 15\pi e^{2u}\varepsilon^*$) imported from a
+lemma stated only for $u \geq 3$, instead of enclosing $\Delta Q$;
+the surrogate was numerically true with a factor of about $14$ to spare
+but was not the method this appendix describes.
+The certificate above encloses $\Delta Q$ directly, as stated.
 
 \noindent\emph{Note on the constant $C=204$.}
 The value $C=204$ is a reference value from the original perturbation analysis
 (specifically, $|\Delta Q(1)|/(\varepsilon^*(1)\cdot|Q_{\varphi_1}(1)|)$,
 not the quotient $|\Delta Q|/(\varepsilon^*\cdot\varphi_1^2)$).
-It is \emph{not} used in the interval-certified $B(u)$-bound on $[1,3]$,
+It is \emph{not} used in the certified $B(u)$-bound on $[1,3]$,
 and it is \emph{not} the certified far-tail domination constant in
 Theorem~\ref{thm:perturbation_tail}, which uses the analytic bound
 $2600\,e^{4u}\varepsilon^*(u)$ proved in Appendix~\ref{sec:appE7}.
-The primary certified result for the $[1,3]$ region is $B(u) \leq 1.12\times 10^{-23}$
+The primary certified result for the $[1,3]$ region is $B(u) \leq 8.54\times 10^{-24}$
 and the sign certificate above, which are independent of the value 204.
 It is retained only as a diagnostic value for comparison with earlier
 perturbation presentations.
@@ -1330,33 +1532,50 @@ For $u\ge3$,
 \[
 \sum_{n\ge2}n^6 e^{-\pi(n^2-1)e^{2u}}
 \le
-2\sum_{n\ge2}n^4 e^{-\pi(n^2-1)e^{2u}},
+5\sum_{n\ge2}n^4 e^{-\pi(n^2-1)e^{2u}},
 \]
 and
 \[
 \sum_{n\ge2}n^8 e^{-\pi(n^2-1)e^{2u}}
 \le
-16\sum_{n\ge2}n^4 e^{-\pi(n^2-1)e^{2u}}.
+32\sum_{n\ge2}n^4 e^{-\pi(n^2-1)e^{2u}}.
 \]
 \end{lemma}
 
 \begin{proof}
-The endpoint $u=3$ is the worst case checked by the finite arithmetic certificate.
-For $u>3$, the exponential penalty increases, and the monotone-tail estimates only improve.
-We verify the finite range $2\le n\le10$ directly from the displayed expressions.
-For $n>10$, use the monotone integral tail:
+Write $S_m(u) = \sum_{n\ge2}n^m e^{-\pi(n^2-1)e^{2u}}$ and
+$a_n = e^{-\pi(n^2-1)e^{2u}}$.
+Then $S_6 - 5S_4 = \sum_{n\ge2}(n^6 - 5n^4)a_n$; the $n=2$ term is
+$(64 - 80)a_2 = -16a_2$ and every $n\ge3$ term is nonnegative, so
+$S_6 \le 5S_4$ if and only if
 \[
-\sum_{n>10} n^m e^{-\pi(n^2-1)e^{2u}}
-\le
-\int_{10}^{\infty} x^m e^{-\pi(x^2-1)e^{2u}}\,dx
+T_6(u) := \sum_{n\ge3}(n^6 - 5n^4)\,e^{-\pi(n^2-4)e^{2u}} \le 16.
 \]
-for $m=6,8$, after noting that the integrand is decreasing for $x\ge10$.
-The resulting tail is far below the $n=2$ contribution at $u=3$, and hence for all $u\ge3$.
-The finite range $2\le n\le10$ is a finite arithmetic certificate:
-the script \texttt{verify\_algebraic\_core.py} evaluates the displayed inequalities
-exactly as written, using rigorous interval enclosures for the exponential terms.
-The remaining $n>10$ contribution is bounded by the monotone integral tail above.
-Thus the weighted comparisons hold for all $u\ge3$.
+Similarly $S_8 - 32S_4$ has $n=2$ term $(256 - 512)a_2 = -256a_2$, and
+$S_8 \le 32S_4$ if and only if
+$T_8(u) := \sum_{n\ge3}(n^8 - 32n^4)e^{-\pi(n^2-4)e^{2u}} \le 256$.
+Every summand of $T_6$ and $T_8$ is a nonnegative constant times
+$e^{-\pi(n^2-4)e^{2u}}$, which is strictly decreasing in~$u$; hence
+$T_6$ and $T_8$ are decreasing in~$u$ and the worst case is $u = 3$.
+At $u = 3$ the $n=3$ term already dominates each sum, and the Arb/FLINT
+certificate \texttt{proof/verify\_weighted\_comparisons.py}
+(finite sum $n = 3,\ldots,40$ plus a certified geometric tail bound)
+gives
+\[
+T_6(3) \leq 2.33\times 10^{-2750} < 16,
+\qquad
+T_8(3) \leq 2.86\times 10^{-2749} < 256,
+\]
+with margins of over 2{,}700 orders of magnitude.
+Thus both comparisons hold for all $u\ge3$.
+
+(Earlier versions of this lemma stated the constants $2$ and $16$;
+those are false --- $S_6 > 4S_4$ and $S_8 > 16S_4$ for all $u \ge 3$ by
+the same domination ($S_6 - 4S_4$ and $S_8 - 16S_4$ have vanishing
+$n=2$ terms and positive $n\ge3$ terms) --- and cited a certificate
+script that never evaluated the sums.
+The constants $5$ and $32$ proved here are what the downstream
+estimates use; see Lemma~\ref{lem:fartail_deriv}.)
 \end{proof}
 
 \begin{lemma}[Far-tail derivative-ratio bounds for $u\geq3$]\label{lem:fartail_deriv}
@@ -1374,24 +1593,48 @@ In particular,
 \end{lemma}
 
 \begin{proof}
-For $k=0$: $|\varphi_n|/|\varphi_1| = (|g_n|/|g_1|)E_n/E_1 \leq 2n^4 e^{-\pi(n^2-1)e^{2u}}$
-(Proposition~\ref{prop:tail_ratio}).
+For $u \geq 3$ the ratio $|g_n/g_1|$ is much smaller than the global
+bound of Proposition~\ref{prop:tail_ratio}: since
+\[
+\frac{g_n}{g_1}
+= n^4\,\frac{2\pi^2 e^{9u/2} - 3\pi e^{5u/2}/n^2}
+            {2\pi^2 e^{9u/2} - 3\pi e^{5u/2}}
+\leq n^4 \bigl(1 - \tfrac{3}{2\pi} e^{-2u}\bigr)^{-1}
+\]
+and $e^{-2u} \leq e^{-6}$ for $u \geq 3$,
+\[
+|\varphi_n(u)|/\varphi_1(u) \leq 1.002\, n^4 e^{-\pi(n^2-1)e^{2u}}
+\qquad (n \geq 2,\ u \geq 3).
+\]
+Also $|g_n'/g_n| \leq 5$ and $|g_n''/g_n| \leq 21$ for $n \geq 2$,
+$u \geq 3$ (the ratios equal $9\pi^2/(2\pi^2) = 4.5$ and
+$(81\pi^2/2)/(2\pi^2) = 20.25$ up to terms of order $e^{-2u}$), so the
+relative-derivative formulas of Lemma~\ref{lem:derivbounds} give
+\[
+|\varphi_n'/\varphi_n| \leq 5 + 2\pi n^2 e^{2u},
+\qquad
+|\varphi_n''/\varphi_n| \leq 4.01\,\pi^2 n^4 e^{4u},
+\]
+the second because $21 + 24\pi n^2 e^{2u} \leq 0.01\,\pi^2 n^4 e^{4u}$
+for $n \geq 2$, $u \geq 3$.
+The per-term display follows with room to spare.
+Summing over $n \geq 2$ with
+$S_m = \sum_{n\ge2} n^m e^{-\pi(n^2-1)e^{2u}}$ (so $S_4 = \varepsilon^*/2$):
 
-For $k=1$: using the explicit formula
-$\varphi_n' = g_n'E_n + g_nE_n'$, the dominant factor in $E_n'$ is $2\pi n^2e^{2u}$,
-so $|\varphi_n'|/|\varphi_1| \leq (10 + 2\pi\cdot2n^2 e^{2u})\cdot 2n^4 e^{-\pi(n^2-1)e^{2u}}$.
-For $u\geq3$, $10 \leq \pi n^2 e^{2u}$, giving
-$|\varphi_n'|/|\varphi_1| \leq 8\pi n^6 e^{2u} e^{-\pi(n^2-1)e^{2u}}$.
-Summing over $n\geq2$:
-$|R'|/|\varphi_1| \leq 8\pi e^{2u} \sum_{n\geq2} n^6 e^{-\pi(n^2-1)e^{2u}} \leq 16\pi e^{2u}\varepsilon^*(u)$
-(by Lemma~\ref{lem:weighted_comparisons}).
+For $k=0$: $|R| \leq 1.002\, S_4\, \varphi_1
+= 0.501\,\varepsilon^*\varphi_1 \leq \varepsilon^*\varphi_1$.
 
-For $k=2$: from $E_n'' = (-4\pi n^2e^{2u}+4\pi^2 n^4e^{4u})E_n$,
-the dominant factor is $4\pi^2 n^4 e^{4u}$, giving
-$|\varphi_n''|/|\varphi_1| \leq 8\pi^2 n^8 e^{4u} e^{-\pi(n^2-1)e^{2u}}$.
-Summing: $|R''|/|\varphi_1| \leq 8\pi^2 e^{4u}\sum_{n\geq2} n^8 e^{-\pi(n^2-1)e^{2u}}
-\leq 128\pi^2 e^{4u}\varepsilon^*(u)$
-(by Lemma~\ref{lem:weighted_comparisons}).
+For $k=1$: $|R'| \leq 1.002\,(5S_4 + 2\pi e^{2u} S_6)\,\varphi_1
+\leq 1.002\,(5 + 10\pi e^{2u})\,S_4\,\varphi_1$
+(by Lemma~\ref{lem:weighted_comparisons}, $S_6 \leq 5S_4$)
+$= (2.51 + 5.01\pi e^{2u})\,\varepsilon^*\varphi_1
+\leq 16\pi e^{2u}\varepsilon^*\varphi_1$ for $u \geq 3$.
+
+For $k=2$: $|R''| \leq 4.02\,\pi^2 e^{4u} S_8\,\varphi_1
+\leq 4.02\,\pi^2 e^{4u}\cdot 32 S_4\,\varphi_1$
+(by Lemma~\ref{lem:weighted_comparisons}, $S_8 \leq 32S_4$)
+$= 64.3\,\pi^2 e^{4u}\varepsilon^*\varphi_1
+\leq 128\pi^2 e^{4u}\varepsilon^*\varphi_1$.
 \end{proof}
 
 \begin{lemma}[$\Delta Q$ far-tail bound]\label{lem:fartail_deltaQ}
@@ -1569,7 +1812,7 @@ W_1'(u)
 -\frac{8\pi e^{2u}}{h^3}
 \left(h^3-6h-36\right).
 \]
-For $u\ge3$, $h(u)=2\pi e^{2u}-3>3.92$, and
+For $u\ge3$, $h(u)\geq h(3)=2\pi e^{6}-3>2500$, and
 \[
 h^3-6h-36>0.
 \]
@@ -1626,18 +1869,19 @@ The proof uses a single route.
 $|W_{\mathrm{tail}}(u)| \leq B(u)$
 where $B(u) = |\Delta Q(u)|/\varphi_1(u)^2 + 3\varepsilon^*(u)|W_1(u)|$.
 
-\emph{Step 2.} Lemma~\ref{lem:Bsign} certifies by interval arithmetic that
-$B(u) \leq 1.12\times 10^{-23}$ for all $u\in[1,3]$ (maximum at $u=1$).
-In particular $|W_{\mathrm{tail}}(u)| \leq B(u) \leq 1.12\times 10^{-23}$ for all $u\in[1,3]$.
+\emph{Step 2.} Lemma~\ref{lem:Bsign} certifies by ball arithmetic that
+$B(u) \leq 8.54\times 10^{-24}$ for all $u\in[1,3]$
+(maximum at the leftmost checkpoint).
+In particular $|W_{\mathrm{tail}}(u)| \leq B(u) \leq 8.54\times 10^{-24}$ for all $u\in[1,3]$.
 
 \emph{Step 3.} Lemma~\ref{lem:Bsign} further certifies
-$\operatorname{upper}(W_1(I_i)+B(I_i)) < 0$
-on each of the 101 intervals covering $[0.99,3.01]\supset[1,3]$.
+$W_1(I)+B(I) < 0$ (an Arb ball comparison)
+on each of the 1{,}813 adaptive balls covering $[0.99,3.01]\supset[1,3]$.
 Since $W = W_1 + W_{\mathrm{tail}}$ and $|W_{\mathrm{tail}}| \leq B$:
 \[
 W(u) = W_1(u) + W_{\mathrm{tail}}(u) \leq W_1(u) + B(u) < 0,
 \]
-with minimum margin $91.3$ at $u=1.0$.
+with minimum margin $91.29$ at $u\approx1.0$.
 \end{proof}
 
 \end{document}

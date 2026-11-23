@@ -7,8 +7,9 @@ exp(−πn²e^{2u}); φ₁ is its n = 1 term; Q(f) := f f″ − (f′)², so
 
 ## The main theorem: (log Φ)″(u) < 0 for all u ≥ 0
 
-This is Csordas's theorem (2015, Thm 4.5). Our contribution is an
-independent interval-arithmetic certification, in three ranges:
+This is Csordas's theorem (2015, Thm 4.5), resting on Csordas–Varga
+(1988) Thm 2.1 via Thm 4.2(b). Our contribution is an independent
+interval-arithmetic certification, in three ranges:
 
 | Range | What proves it | Human-checkable unaided |
 |---|---|---|

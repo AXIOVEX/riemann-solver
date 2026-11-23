@@ -50,11 +50,21 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def tail_sum_arb(m, c, u_val):
     """Certified upper bound on T(u) = sum_{n>=3} (n^m - c*n^4) e^{-pi*(n^2-4)*e^{2u}}.
 
-    Finite sum n = 3..N_FINITE evaluated in Arb; the n > N_FINITE tail is
-    bounded by (first neglected term) / (1 - r), where r is a certified
-    ratio bound: for n >= N_FINITE,
-        term(n+1)/term(n) <= ((n+1)/n)^m * e^{-pi*(2n+1)*e^{2u}} <= r < 1/2,
-    using (n^m - c n^4) <= n^m and e^{2u} >= e^6.
+    Finite sum n = 3..N_FINITE evaluated in Arb with the difference
+    sequence's own terms (n^m - c*n^4). The n > N_FINITE tail is NOT
+    bounded from the difference sequence itself: it is bounded through
+    the MAJORANT sequence n^m * e^{-pi*(n^2-4)*e^{2u}}, which dominates
+    the difference sequence termwise (c*n^4 >= 0). The tail is at most
+    (the majorant's first omitted term, at n = N_FINITE + 1) / (1 - r),
+    where r is a certified ratio bound for the MAJORANT sequence: for
+    n >= N_FINITE,
+        majorant(n+1)/majorant(n)
+            = ((n+1)/n)^m * e^{-pi*(2n+1)*e^{2u}} <= r < 1/2,
+    evaluated at n = N_FINITE with e^{2u} >= e^6 (u = 3); the ratio
+    only shrinks for larger n.
+    (Docstring corrected 2026-11-23, R2-4 item 10: the previous text
+    described the tail as the difference sequence's own first neglected
+    term over (1 - r), which is not the argument the code runs.)
     """
     pi = arb.pi()
     u = arb(u_val)

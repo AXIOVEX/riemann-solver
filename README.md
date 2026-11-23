@@ -137,7 +137,7 @@ falsification/
 
 verification/
   certificate.json           Arb IA certificate (55,892 intervals)
-  proof_certificate_v2.json  Geiger-style formal certificate (9 steps, C1-C9)
+  proof_certificate_v2.json  Geiger-style formal certificate (9 steps, C1-C9) (historical; RH conclusion withdrawn — see verification/STATUS.json)
   generate_certificate_v2.py Certificate generator
   verify_certificate.py      Standalone certificate verifier
   + 14 audit documents

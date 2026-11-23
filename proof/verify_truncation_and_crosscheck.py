@@ -140,18 +140,24 @@ def main():
     D0, D1, D2 = delta_bounds()
     S0, S1, S2 = phi5_sup_norms()
     total = D2 * S0 + S2 * D0 + 2 * S1 * D1 + D0 * D2 + D1 ** 2
-    total_hi = float(total.b)
 
-    margin = 3.36e-12  # fallback: the certified [0,1] margin of record
+    margin = iv.mpf("3.36e-12")  # fallback: the certified [0,1] margin of record
     rig_path = os.path.join(ROOT, "results", "verify_logconcavity_rigorous.json")
     if os.path.exists(rig_path):
         with open(rig_path) as f:
             rig = json.load(f)
         if rig.get("max_Q_upper") is not None:
-            margin = abs(float(rig["max_Q_upper"]))
+            margin = abs(iv.mpf(rig["max_Q_upper"]))
 
-    safety = margin / total_hi if total_hi > 0 else float("inf")
-    part1_ok = total_hi < margin
+    # Decisive comparison on interval endpoints, in iv arithmetic,
+    # BEFORE any float conversion (R2-4 item 9, corrected 2026-11-23):
+    # Part 1 is certified iff the propagated bound's upper endpoint
+    # lies strictly below the margin's lower endpoint. Floats are
+    # used only for printing and for the JSON record below.
+    part1_ok = total.b < margin.a
+    total_hi = float(total.b)
+    margin_f = float(margin)
+    safety = margin_f / total_hi if total_hi > 0 else float("inf")
 
     print(f"  Delta_0 (sup |delta|)   <= {float(D0.b):.6e}")
     print(f"  Delta_1 (sup |delta'|)  <= {float(D1.b):.6e}")
@@ -160,7 +166,7 @@ def main():
     print(f"  sup |Phi_5'|  <= {float(S1):.6f}")
     print(f"  sup |Phi_5''| <= {float(S2):.6f}")
     print(f"  Propagated |Q_Phi - Q_Phi5| <= {float(total.b):.6e} on [0,1]")
-    print(f"  Certified [0,1] margin: {margin:.4e}")
+    print(f"  Certified [0,1] margin: {margin_f:.4e}")
     print(f"  Safety factor: {safety:.4e}")
     print(f"  Part 1: {'CERTIFIED' if part1_ok else '*** NOT CERTIFIED ***'}")
 
@@ -207,7 +213,7 @@ def main():
         "delta_2_bound": float(D2.b),
         "sup_phi5": [float(s) for s in (S0, S1, S2)],
         "truncation_bound": total_hi,
-        "q_phi_margin": margin,
+        "q_phi_margin": margin_f,
         "safety_factor": safety,
         "cross_validation_passed": bool(xv_ok),
         "passed": passed,

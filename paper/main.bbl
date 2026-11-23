@@ -16,12 +16,20 @@ Petter Brand\'{e}n and Matthew Chass\'{e}.
 
 \bibitem{cardon2002}
 David~A. Cardon.
-\newblock Fourier transforms having only real zeros.
+\newblock Convolution operators and zeros of entire functions.
 \newblock {\em Proceedings of the American Mathematical Society},
   130(6):1725--1734, 2002.
-\newblock Discusses P\'olya's Hilfssatz~II in the context of Fourier transforms
-  with only real zeros. Cited by multiple sources for the
-  log-concavity/Hilfssatz connection.
+\newblock A distinct paper from Cardon (2005). An earlier version of this entry
+  conflated the two papers; corrected 2026-11-22.
+
+\bibitem{cardon2005}
+David~A. Cardon.
+\newblock Fourier transforms having only real zeros.
+\newblock {\em Proceedings of the American Mathematical Society},
+  133:1349--1356, 2005.
+\newblock Lemma~2 is ``P\'olya's Hilfssatz~II'', sourced there to P\'olya
+  (1926), Acta Math.~48, 305--317: a shift-sum preservation lemma for
+  real-rootedness, not the log-concavity criterion.
 
 \bibitem{csordas2013}
 Mark~W. Coffey and George Csordas.
@@ -108,6 +116,16 @@ Ljubomir Ilieff.
 Tristen~Kyle Pierson.
 \newblock specsmith: Applied epistemic engineering toolkit for ai-assisted
   development, 2026.
+
+\bibitem{polya1926}
+G.~P{\'o}lya.
+\newblock Bemerkung {\"u}ber die {I}ntegraldarstellung der {R}iemannschen
+  $\\xi$-{F}unktion.
+\newblock {\em Acta Mathematica}, 48:305--317, 1926.
+\newblock English translation: T.~Hosgood,
+  \url{https://translations.thosgood.com/AM-48-1926-305.html}. Proves that a
+  modified $\xi^*$ function has only real zeros via difference equation
+  methods. Does NOT use log-concavity of the kernel.
 
 \bibitem{polya1927}
 G.~P{\'o}lya.

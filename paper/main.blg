@@ -1,51 +1,49 @@
-This is BibTeX, Version 0.99e
+This is BibTeX, Version 0.99e (TeX Live 2026)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: main.aux
-Reallocating 'name_of_file' (item size: 1) to 6 items.
 The style file: plain.bst
-Reallocating 'name_of_file' (item size: 1) to 11 items.
 Database file #1: references.bib
 Warning--entry type for "specsmith" isn't style-file defined
 --line 220 of file references.bib
-You've used 15 entries,
+You've used 17 entries,
             2118 wiz_defined-function locations,
-            600 strings with 8789 characters,
-and the built_in function-call counts, 4508 in all, are:
-= -- 469
-> -- 162
+            613 strings with 9352 characters,
+and the built_in function-call counts, 5128 in all, are:
+= -- 539
+> -- 176
 < -- 0
-+ -- 69
-- -- 50
-* -- 301
-:= -- 774
-add.period$ -- 51
-call.type$ -- 15
-change.case$ -- 70
++ -- 75
+- -- 54
+* -- 341
+:= -- 878
+add.period$ -- 59
+call.type$ -- 17
+change.case$ -- 78
 chr.to.int$ -- 0
-cite$ -- 15
-duplicate$ -- 160
-empty$ -- 372
-format.name$ -- 50
-if$ -- 919
+cite$ -- 17
+duplicate$ -- 182
+empty$ -- 426
+format.name$ -- 54
+if$ -- 1047
 int.to.chr$ -- 0
-int.to.str$ -- 15
-missing$ -- 15
-newline$ -- 84
-num.names$ -- 30
-pop$ -- 49
+int.to.str$ -- 17
+missing$ -- 17
+newline$ -- 96
+num.names$ -- 34
+pop$ -- 51
 preamble$ -- 1
-purify$ -- 55
+purify$ -- 61
 quote$ -- 0
-skip$ -- 109
+skip$ -- 123
 stack$ -- 0
-substring$ -- 356
-swap$ -- 15
+substring$ -- 422
+swap$ -- 17
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 58
+type$ -- 66
 warning$ -- 0
-while$ -- 51
-width$ -- 17
-write$ -- 176
+while$ -- 59
+width$ -- 19
+write$ -- 202
 (There was 1 warning)

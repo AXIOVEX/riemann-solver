@@ -47,8 +47,9 @@ rigorous interval arithmetic on~$[0,1]$, a no-cancellation certification
 of $(\log\Phi)'' < 0$ on~$[1,3]$, and an explicit monotonicity tail bound for~$u\geq 3$.
 
 The strict log-concavity of the full kernel~$\Phi$ was first proved by
-Csordas~\cite{csordas2015} (Theorem~4.5); the certification given here is
-independent of that proof.
+Csordas--Varga~\cite{csordas1989} (Theorem~2.1 of 1988, via
+Csordas~\cite{csordas2015}, Theorem~4.2(b) and Theorem~4.5); the
+certification given here is independent of that proof.
 
 We also audit the commonly cited P\'{o}lya-type bridge from log-concavity of a
 kernel to real-rootedness of its Fourier transform.
@@ -232,8 +233,10 @@ Both terms are negative, so $(\log\varphi_1)'' < 0$.
 \end{proof}
 
 \begin{remark}
-$(\log\varphi_1)''(0) \approx -19.56$, monotonically decreasing.
-The series for~$\Phi''(0)$ converges to $-68.052\ldots$ by $N = 5$ terms.
+$(\log\varphi_1)''(0) \approx -19.56$; since
+$(\log\varphi_1)'''(0) = +14.42\ldots > 0$, it initially increases, so no
+monotonicity is claimed.
+The series for~$\Phi''(0)$ converges to $-33.46100155\ldots$ by $N = 5$ terms.
 \end{remark}
 
 %% =========================================================================
@@ -775,8 +778,10 @@ Csordas~\cite[Example~3.12]{csordas2015} exhibits the same phenomenon:
 log-concavity alone does not force real-rootedness.)
 \end{proof}
 
-\begin{remark}[Necessity of analyticity]
-Condition~(v) is essential.
+\begin{remark}[The role of analyticity]
+Condition~(v) excludes the classical non-analytic examples, but it does
+not save the criterion: Proposition~\ref{prop:counterexample} refutes
+Hypothetical Criterion~\ref{hcrit:polya_star} with analyticity assumed.
 The even function $K(t) = e^{-|t|^3}$ satisfies conditions~(i)--(iv) but
 fails analyticity at the origin, and its cosine transform has 4~complex zeros
 in $[5,15]\times[-5,5]$~\cite[Ex.~2.1]{csordas1989}.
@@ -860,8 +865,8 @@ That question is now answered in the negative
 (Proposition~\ref{prop:counterexample}).
 Any future bridge from log-concavity of~$\Phi$ to real-rootedness
 of~$\Xi$ must use additional hypotheses (for instance the generalized
-Laguerre inequalities of Csordas~\cite{csordas2015}); no criterion with
-exactly the five hypotheses above can apply, to~$\Phi$ or to any kernel.
+Laguerre inequalities of Csordas~\cite{csordas2015}).
+The five hypotheses alone do not imply real-rootedness.
 
 %% =========================================================================
 \section{Proof-Critical Dependencies}\label{sec:deps}
@@ -909,7 +914,8 @@ and the RH interpretation that the refuted criterion would have supported.
 \label{sec:falsify}
 
 We subjected every proof-chain link to 36~systematic tests in 7~batches.
-No test detected any inconsistency.
+No test in the current battery detected any inconsistency; historically,
+Attack~12 did detect a real bug (wrong $g''$ coefficient), as recorded below.
 
 \begin{center}
 \small
@@ -1092,9 +1098,8 @@ The following results are consequences of or evidence consistent with RH but
 \emph{do not form part of the proof chain} in Section~\ref{sec:deps}.
 
 \paragraph{(i) Jensen polynomial hyperbolicity.}
-\cite{griffin2019} establish that $J^d_n(X)$ is hyperbolic for each fixed~$d$.
-If Remark~\ref{thm:rh_conditional} were established unconditionally, this would
-extend to all $d, n \geq 0$ simultaneously.
+\cite{griffin2019} establish that $J^d_n(X)$ is hyperbolic for each fixed~$d$
+and all sufficiently large~$n$.
 Numerically verified for $k = 1,\ldots,8$ ($d=2$) and $n = 1,\ldots,7$ ($d=3$).
 
 \paragraph{(ii) De Bruijn--Newman constant.}
@@ -1201,6 +1206,11 @@ BB889E9A1A0FD0CE75F5769FD7BE1DC34B1AF7C7987B0415779ABF8959C5A592
 verification/proof_certificate_v2.json
 8B538345D589638A7AB9534470085CF531DACABD57D9143A2BF327C5CB2DC192
 \end{verbatim}
+
+\medskip\noindent
+(The \texttt{proof\_certificate\_v2.json} entry above is a historical
+aggregate, 2026-05-31; its C9 RH conclusion is withdrawn --- see
+\texttt{verification/STATUS.json}.)
 
 %% =========================================================================
 \section{P\'{o}lya Source Analysis}\label{sec:polya_audit}
@@ -1314,7 +1324,7 @@ $|\varphi_n'| \leq 4\,n^4 e^{-\pi(n^2-1)e^{2u}}|\varphi_1|$ and
 $|\varphi_n''| \leq 8\,n^4 e^{-\pi(n^2-1)e^{2u}}|\varphi_1|$; those
 bounds are false --- the true ratios grow like $n^6$ and $n^8$ ---
 and the lemma asserting them has been removed.  Nothing in the
-certificate depended on them: the code has always evaluated the closed
+certificate depended on them: the repaired certificate evaluates the closed
 forms directly.)
 
 \begin{lemma}[Closed-form derivatives]\label{lem:derivbounds}
@@ -1633,7 +1643,7 @@ $= (2.51 + 5.01\pi e^{2u})\,\varepsilon^*\varphi_1
 For $k=2$: $|R''| \leq 4.02\,\pi^2 e^{4u} S_8\,\varphi_1
 \leq 4.02\,\pi^2 e^{4u}\cdot 32 S_4\,\varphi_1$
 (by Lemma~\ref{lem:weighted_comparisons}, $S_8 \leq 32S_4$)
-$= 64.3\,\pi^2 e^{4u}\varepsilon^*\varphi_1
+$= 64.32\,\pi^2 e^{4u}\varepsilon^*\varphi_1
 \leq 128\pi^2 e^{4u}\varepsilon^*\varphi_1$.
 \end{proof}
 

@@ -14,8 +14,8 @@
   "failed": 0,
   "max_Q_upper": -3.3560148634612064e-12,
   "worst_u": 0.94875,
-  "time_s": 66.64955282211304,
+  "time_s": 49.115192890167236,
   "all_certified": true,
   "rigorous": true,
-  "note": "Adaptive grid: coarse on [0, 0.95], fine on [0.95, 1.0]"
+  "note": "Adaptive grid: coarse on [0, 0.949], fine on [0.949, 1.0]"
 }

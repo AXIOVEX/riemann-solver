@@ -13,7 +13,15 @@ cancellation. This script certifies (log Phi)'' < 0 directly (no cancellation).
 Proof coverage:
   [0, 1.0]: certified by verify_logconcavity_rigorous.py (52,898 IA subintervals)
   [1.0, 3.0]: certified by THIS SCRIPT (101 overlapping interval checks)
-  [3.0, inf): covered by verify_algebraic_core.py (monotonicity argument)
+  [3.0, inf): analytic far-tail argument of Appendix E.7 (monotonicity;
+              weighted-comparison constants certified by
+              verify_weighted_comparisons.py)
+
+Repair note (Spec 004): the DeltaQ and epsilon* sums are finite (n <= 10
+resp. n <= 15); the n-tail contributions were previously asserted in
+metadata only.  They are now bounded inside B(u) itself by explicit
+derivative-aware majorants (the same majorants the primary Arb
+certificate uses), evaluated here in mpmath.iv arithmetic.
 """
 
 import json
@@ -86,6 +94,60 @@ def phi_n_all_iv(n, u_iv):
     return phi, phi_d1, phi_d2
 
 
+_TAU_CACHE = None
+
+
+def tail_allowances_iv():
+    """Explicit majorant bounds (tau_0, tau_1, tau_2, eps_tail) as iv
+    intervals, valid for all u in [0.99, 3.01]: |sum_{n>10} phi_n^{(k)}(u)|
+    <= tau_k and 2*sum_{n>15} n^4 e^{-pi*(n^2-1)*e^{2u}} <= eps_tail.
+
+    Same majorants as the primary Arb certificate: with A = e^{9*3.01/2}
+    and D_n = exp(-pi*n^2*e^{1.98}),
+        |phi_n^{(k)}| <= C_k * n^{4+2k} * A * D_n,
+    C_0 = 30, C_1 = 100 + 30*2*pi*e^{6.02},
+    C_2 = 460 + 230*2*pi*e^{6.02} + 30*(4*pi*e^{6.02} + 4*pi^2*e^{12.04}).
+    Majorant sums run n = 11..80 (resp. 16..80) plus a geometric tail
+    bound with certified ratio < 1/2.
+    """
+    global _TAU_CACHE
+    if _TAU_CACHE is not None:
+        return _TAU_CACHE
+    pi = iv.pi
+    U_LO = iv.mpf("0.99")
+    U_HI = iv.mpf("3.01")
+    e2ulo = iv.exp(2 * U_LO)
+    e2uhi = iv.exp(2 * U_HI)
+    A = iv.exp(9 * U_HI / 2)
+    C = [iv.mpf(30),
+         100 + 30 * 2 * pi * e2uhi,
+         460 + 230 * 2 * pi * e2uhi + 30 * (4 * pi * e2uhi + 4 * pi**2 * e2uhi**2)]
+
+    def majorant(k, n):
+        return C[k] * iv.mpf(n) ** (4 + 2 * k) * A * iv.exp(-pi * n * n * e2ulo)
+
+    taus = []
+    for k in range(3):
+        total = iv.mpf(0)
+        for n in range(11, 81):
+            total += majorant(k, n)
+        r = (iv.mpf(81) / 80) ** (4 + 2 * k) * iv.exp(-pi * 161 * e2ulo)
+        assert float(r.b) < 0.5, "majorant ratio bound not < 1/2"
+        total += majorant(k, 81) / (1 - r)
+        taus.append(total)
+
+    etotal = iv.mpf(0)
+    for n in range(16, 81):
+        etotal += 2 * iv.mpf(n) ** 4 * iv.exp(-pi * (n * n - 1) * e2ulo)
+    r = (iv.mpf(81) / 80) ** 4 * iv.exp(-pi * 161 * e2ulo)
+    assert float(r.b) < 0.5, "eps* majorant ratio bound not < 1/2"
+    etotal += (2 * iv.mpf(81) ** 4 * iv.exp(-pi * (81 * 81 - 1) * e2ulo)) / (1 - r)
+    taus.append(etotal)
+
+    _TAU_CACHE = tuple(taus)
+    return _TAU_CACHE
+
+
 def compute_wtail_bound_iv(u_iv, n_tail=10):
     """Compute interval-arithmetic upper bound on |W_tail(u)|.
 
@@ -119,7 +181,16 @@ def compute_wtail_bound_iv(u_iv, n_tail=10):
     # DeltaQ = R''*phi1 + phi1''*R - 2*phi1'*R' + R''*R - (R')^2
     dQ = Rd2 * phi1 + phi1d2 * R - 2 * phi1d1 * Rd1 + Rd2 * R - Rd1 ** 2
 
-    # eps*(u) upper bound
+    # Explicit n > 10 tail allowance: with T, T', T'' the tail sums and
+    # |T^{(k)}| <= tau_k, DeltaQ - dQ is bounded term by term.
+    tau0, tau1, tau2, _ = tail_allowances_iv()
+    tail_cross = (tau2 * abs(phi1) + abs(phi1d2) * tau0
+                  + 2 * abs(phi1d1) * tau1
+                  + tau2 * abs(R) + abs(Rd2) * tau0
+                  + 2 * abs(Rd1) * tau1
+                  + tau2 * tau0 + tau1 ** 2)
+
+    # eps*(u) upper bound (finite sum + explicit tail, see epsilon_upper_iv)
     eps = epsilon_upper_iv(u_iv)
 
     # W_1(u) (always negative)
@@ -127,7 +198,7 @@ def compute_wtail_bound_iv(u_iv, n_tail=10):
 
     # |DeltaQ| upper bound: max(|dQ.a|, |dQ.b|)
     # In mpmath iv, abs() of an interval works correctly.
-    abs_dQ    = abs(dQ)
+    abs_dQ    = abs(dQ) + tail_cross
     phi1_sq   = phi1 * phi1        # phi1 > 0, so phi1^2 > 0
 
     # |DeltaQ| / phi1^2  (interval quotient)
@@ -143,7 +214,10 @@ def compute_wtail_bound_iv(u_iv, n_tail=10):
     # B(u) = ratio + correction  (upper bound on |W_tail|)
     B = ratio + correction
 
-    return float(B.b), float(quotient.b), float(ratio.b)
+    # The quotient is a legacy diagnostic only (see the JSON note): it is
+    # returned as an mpf because it overflows float at large u, where the
+    # rigorous tail allowance dominates |DeltaQ|.
+    return float(B.b), quotient.b, float(ratio.b)
 
 
 def epsilon_upper_iv(u_iv, n_tail=15):
@@ -162,6 +236,9 @@ def epsilon_upper_iv(u_iv, n_tail=15):
         # Use 2*n^4 as the corrected prefactor upper bound (B_n(u) <= 2*n^4)
         term = 2 * iv.mpf(n)**4 * iv.exp(-pi * (n2 - 1) * e2u)
         total += term
+    # Explicit tail bound for n > n_tail (majorant at the weakest decay
+    # on the cover, u >= 0.99), from tail_allowances_iv.
+    total += tail_allowances_iv()[3]
     return total
 
 
@@ -209,7 +286,7 @@ def main():
     cert_count  = failed_count = 0
     min_margin  = float("inf")
     worst_u     = 1.0
-    max_C_upper = 0.0
+    max_C_upper = mp.mpf(0)
     max_B_upper = 0.0
     table       = []
     t0          = time.time()
@@ -231,9 +308,9 @@ def main():
         max_B_upper = max(max_B_upper, B_upper)
 
         status = "OK" if ok else "*** FAIL ***"
-        print(f"  {u:6.3f}  {w1_hi:>12.4e}  {B_upper:>14.4e}  {C_upper:>12.2f}  {margin:>12.4e}  {status}")
+        print(f"  {u:6.3f}  {w1_hi:>12.4e}  {B_upper:>14.4e}  {mp.nstr(C_upper, 4):>12}  {margin:>12.4e}  {status}")
         table.append({"u": round(u, 6), "W_1_upper": w1_hi,
-                      "B_upper": B_upper, "C_upper": C_upper,
+                      "B_upper": B_upper, "C_upper": mp.nstr(C_upper, 6),
                       "margin": margin, "ok": ok})
 
     elapsed = time.time() - t0
@@ -245,7 +322,7 @@ def main():
     print("  Failed:    %d / %d" % (failed_count, N_CHECKS + 1))
     print("  Min margin (tightest): %.4e at u=%.4f" % (min_margin, worst_u))
     print("  Max B_upper (|W_tail| bound):  %.4e" % max_B_upper)
-    print("  Max C_upper (quotient bound):  %.4f" % max_C_upper)
+    print("  Max C_upper (quotient bound):  %s" % mp.nstr(max_C_upper, 6))
     print("  Time: %.1fs" % elapsed)
 
     if all_ok:
@@ -255,8 +332,9 @@ def main():
         print()
         print("  Combined proof coverage:")
         print("    [0, 1.0]  : IA (52,898 subintervals, verify_logconcavity_rigorous)")
-        print("    [1.0, 3.0]: algebraic + perturbation (THIS SCRIPT)")
-        print("    [3.0, inf): algebraic C=204 (verify_algebraic_core)")
+        print("    [1.0, 3.0]: W_1 + B < 0 with direct DeltaQ enclosure (THIS SCRIPT)")
+        print("    [3.0, inf): analytic far-tail argument, Appendix E.7")
+        print("                (constants certified by verify_weighted_comparisons)")
         print("  ENTIRE domain [0, infinity) rigorously covered.")
     else:
         print("  *** FAILURES — REVIEW ABOVE ***")
@@ -285,14 +363,20 @@ def main():
         "combined_coverage": {
             "[0,1.0]": "IA 52898 subintervals (verify_logconcavity_rigorous.py)",
             "[1.0,3.0]": "IA W_1+B < 0 on 101 checkpoints (this script)",
-            "[3.0,inf)": "monotonicity argument (verify_algebraic_core.py)",
+            "[3.0,inf)": "analytic far-tail argument, Appendix E.7 (verify_weighted_comparisons.py)",
         },
         "delta_Q_definition": "R''*phi1 + phi1''*R - 2*phi1'*R' + R''*R - (R')^2",
         "finite_terms": 10,
         "finite_terms_DeltaQ": 10,
         "finite_terms_eps_star": 15,
-        "tail_bound_n_gt_10": "< 1e-1000 at u=1 (n=11 term: ~n^4*exp(-pi*120*e^2) < 10^{-1200})",
-        "tail_bound_method": "analytic exponential majorant: for n>10, u>=1, n^4*exp(-pi*(n^2-1)*e^{2u}) < 10^{-1000}; DeltaQ tail contribution < 10^{-900}",
+        "tail_bound_n_gt_10": "|R''| tail <= tau_2 (explicit majorant, "
+                              "see tail_bound_method); eps* tail included in B",
+        "tail_bound_method": "explicit derivative-aware majorants "
+                             "|phi_n^(k)| <= C_k n^{4+2k} e^{9*3.01/2} "
+                             "exp(-pi n^2 e^{1.98}), summed n=11..80 in iv "
+                             "plus a certified geometric tail (ratio < 1/2); "
+                             "identical majorants to the Arb primary "
+                             "certificate (tau_2 ~ 1e-1174)",
         "checkpoints": table,
     }
 

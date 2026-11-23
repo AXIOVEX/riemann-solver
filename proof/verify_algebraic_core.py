@@ -1,9 +1,22 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Tristen Kyle Pierson / BitConcepts Research
-"""Verify the algebraic core and corrected perturbation bound for u > 1.0."""
+"""Verify the algebraic core and corrected perturbation bound for u > 1.0.
+
+SUPERSEDED (2026-11-22, Spec 004 repair pass).  This legacy script is
+retired and is no longer part of the verification pipeline.  It never
+evaluated the weighted tail sums it was cited for, it uses no interval
+arithmetic, and its closing "COMPLETE PROOF CHAIN ... Therefore RH"
+print states a claim the program has withdrawn: the Polya-type criterion
+it invokes is FALSE (see the counterexample in the manuscript, and
+coscientist-adjudication-round1.md, Finding A).  The far-tail weighted
+comparisons are certified by proof/verify_weighted_comparisons.py.
+Kept in place for the historical record only.
+"""
 import mpmath as mp
 mp.mp.dps = 80
 
+print("*** SUPERSEDED SCRIPT (2026-11-22): retired, not part of the pipeline. ***")
+print("*** Its closing proof-chain print states a withdrawn claim. See docstring. ***\n")
 print("=== ALGEBRAIC CORE VERIFICATION ===\n")
 
 # (log phi_1)'' = (log h)'' - 4*pi*e^{2u}
@@ -63,7 +76,7 @@ print("For u >= 1.0: effective_perturbation < 10^-20 << 1")
 print("Since (log phi_1)'' < -30 at u=1 and perturbation ~ 10^-20,")
 print("the tail cannot flip the sign. Q_Phi < 0 for u >= 1.0. QED")
 
-print("\n=== COMPLETE PROOF CHAIN ===")
+print("\n=== HISTORICAL PROOF-CHAIN PRINT (WITHDRAWN CLAIM — DO NOT CITE) ===")
 print("1. Polya (1927): If Phi is even, positive, L^1, and log-concave,")
 print("   then Xi(t) = int Phi(u)cos(tu)du has only real zeros.")
 print("2. Phi is even: Theta functional equation. [classical]")

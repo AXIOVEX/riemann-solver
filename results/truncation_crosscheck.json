@@ -1,7 +1,15 @@
 {
-  "truncation_bound": 7.027019588437716e-43,
-  "truncation_bound_below_1e42": true,
-  "q_phi_margin": 3.36e-12,
-  "safety_factor": 4.7815435231297156e+30,
-  "cross_validation_passed": true
+  "delta_0_bound": 7.120218330329669e-43,
+  "delta_1_bound": 1.1932339104457743e-39,
+  "delta_2_bound": 2.0020479795152474e-36,
+  "sup_phi5": [
+    2.6488329766260055,
+    13.810636665865744,
+    142.56502208891672
+  ],
+  "truncation_bound": 5.336150858324921e-36,
+  "q_phi_margin": 3.3560148634612064e-12,
+  "safety_factor": 6.289205370244532e+23,
+  "cross_validation_passed": true,
+  "passed": true
 }

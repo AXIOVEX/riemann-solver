@@ -19,8 +19,10 @@ Usage:
 import argparse
 import json
 import os
+import sys
 import time
 
+import flint
 from flint import arb, ctx
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -195,7 +197,7 @@ def main():
     result = {
         "method": "arb_flint_independent",
         "library": "python-flint (Arb)",
-        "library_version": "0.8.0",
+        "library_version": flint.__version__,
         "precision_bits": PREC,
         "n_subintervals_tested": len(test_intervals),
         "n_subintervals_total": n_total,
@@ -215,7 +217,9 @@ def main():
     with open(out_path, "w") as f:
         json.dump(result, f, indent=2)
     print("  -> %s" % out_path)
+    return result
 
 
 if __name__ == "__main__":
-    main()
+    _result = main()
+    sys.exit(0 if _result["all_certified"] else 1)

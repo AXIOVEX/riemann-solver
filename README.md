@@ -1,12 +1,12 @@
 # Riemann Hypothesis: Log-Concavity Proof
 
-[![CI](https://github.com/BitConcepts/riemann-solver/actions/workflows/ci.yml/badge.svg)](https://github.com/BitConcepts/riemann-solver/actions/workflows/ci.yml)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20465036-blue)](https://doi.org/10.5281/zenodo.20465036)
+[![CI](https://github.com/AXIOVEX/riemann-solver/actions/workflows/ci.yml/badge.svg)](https://github.com/BitConcepts/riemann-solver/actions/workflows/ci.yml)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.24445687-blue)](https://doi.org/10.5281/zenodo.24445687)
 [![License: MIT](https://img.shields.io/badge/Code-MIT-blue.svg)](LICENSE-CODE)
 [![License: CC BY 4.0](https://img.shields.io/badge/Paper-CC%20BY%204.0-lightgrey.svg)](LICENSE-PAPER)
 [![AEE Score](https://img.shields.io/badge/AEE%20Score-0.169%2F1.000-informational)](papers/LEADERBOARD.md)
 
-**Paper**: [Pierson (2026) — *Certified Log-Concavity of the Riemann–Jacobi Kernel and a Source Audit of a Pólya-Type Real-Zero Criterion*](https://doi.org/10.5281/zenodo.20465036)
+**Paper**: [Pierson (2026) — *Certified Log-Concavity of the Riemann–Jacobi Kernel and a Source Audit of a Pólya-Type Real-Zero Criterion*](https://doi.org/10.5281/zenodo.24445687)
 
 **Status**: Preprint — not yet peer-reviewed. **No unconditional RH claim is made.**
 
@@ -14,20 +14,20 @@
 
 ## What This Is
 
-We certify that the Riemann–Jacobi kernel Φ(u) is strictly log-concave on [0,∞). We also audit the commonly cited Pólya-type bridge from kernel log-concavity to real-rootedness of the Fourier transform, finding no verified primary-source statement matching the needed criterion. The RH implication is therefore conditional on an open/unsourced dependency (Hypothetical Criterion 13).
+We certify that the Riemann–Jacobi kernel Φ(u) is strictly log-concave on [0,∞) — an independent interval-arithmetic certification of a theorem first proved by Csordas (2015, Theorem 4.5). We also audit the commonly cited Pólya-type bridge from kernel log-concavity to real-rootedness of the Fourier transform. The bridge, as formulated (Hypothetical Criterion 13), is **false**: the manuscript states and proves an explicit counterexample. The conditional RH implication is therefore vacuous, and no route from this paper to RH exists.
 
 **Proof chain (unconditional log-concavity):**
 1. **Algebraic core** — `(log φ₁)′′(u) < 0` for all `u ≥ 0` by explicit computation
 2. **Rigorous IA on [0, 1.0]** — Arb/FLINT primary (ball arithmetic), mpmath.iv cross-check (52,898 subintervals)
-3. **Extended cert [1.0, 3.0]** — Arb/FLINT primary (101 ball-arithmetic checkpoints), mpmath.iv cross-check; avoids 40× catastrophic cancellation
+3. **Extended cert [1.0, 3.0]** — Arb/FLINT primary (1,813 adaptive ball-arithmetic checks, direct ΔQ enclosure), mpmath.iv cross-check; avoids 40× catastrophic cancellation
 4. **Far-tail bound [3.0, ∞)** — analytic monotonicity argument with `C_tail = 2600`, doubly-exp small ε*(u)
 
-**Conditional corollaries** (require Hypothetical Criterion 13):
+**Conditional corollaries** (required Hypothetical Criterion 13 — now known to be **false**, so these corollaries are vacuous):
 - ξ(t) has only real zeros ⇒ Jensen polynomial `Jᵈ_n(X)` hyperbolic for **all** `d ≥ 0`, **all** `n ≥ 0`
 - Λ = 0 (de Bruijn–Newman constant)
 - Robin's criterion σ(n) < e^γ n ln(ln n) for all n ≥ 5041
 
-**Lean 4**: 12 axioms, 4 proved theorems (`h_pos_for_nonneg`, `log_h_d2_neg`, `log_phi1_d2_neg`; `phi_positive` via `Real.exp_pos`), 0 sorry
+**Lean 4**: 13 axioms, 6 proved auxiliary theorems plus the conditional assembly theorem `riemann_hypothesis` (proved from the axioms; vacuous, since the axiom `polya_theorem` is false), 0 sorry
 
 **Falsification**: 36 attacks (7 batches), all survived. Davenport–Heilbronn control validated (159 off-line candidates detected).
 
@@ -43,7 +43,7 @@ Requires Python 3.11+. Works on Linux, macOS, and Windows.
 # Core proof (no extra deps needed)
 pip install -r requirements.txt
 pip install -e .
-python verify.py --quick    # 4 steps: algebraic, cross-val, Polya, extended cert (~2s)
+python verify.py --quick    # partial run: skips the two [0,1] IA steps, runs the other 5
 python falsify.py --quick   # external audit + self-audit (~20s)
 ```
 
@@ -71,13 +71,13 @@ python verify.py   # full pipeline: ~70s (IA step is slow)
 ```
 
 7 verification steps:
-1. Rigorous IA on [0, 1.0] — Arb/FLINT primary + mpmath.iv cross-check
-2. Algebraic core + perturbation bound
-3. Truncation error + cross-validation
-4. Pólya/de Bruijn condition check
-5. Arb/FLINT cert: (log Φ)′′ < 0 on [1.0, 3.0] — 101 ball-arithmetic checkpoints
-6. mpmath.iv cross-check: (log Φ)′′ < 0 on [1.0, 3.0] — 101 algebraic checkpoints
-7. Galerkin stabilization
+1. Rigorous IA on [0, 1.0] — Arb/FLINT primary (55,892 intervals)
+2. Rigorous IA on [0, 1.0] — mpmath.iv (52,898 subintervals)
+3. Truncation error + cross-validation (uniform estimate; enters the verdict)
+4. Arb/FLINT cert: (log Φ)′′ < 0 on [1.0, 3.0] — 1,813 adaptive ball-arithmetic checks (direct ΔQ enclosure)
+5. mpmath.iv cross-check: (log Φ)′′ < 0 on [1.0, 3.0] — 101 checkpoints
+6. Weighted-comparisons certificate (far tail u ≥ 3) — Arb/FLINT
+7. Galerkin stabilization (independent method)
 
 ---
 
@@ -115,16 +115,18 @@ See [`papers/LANDSCAPE.md`](docs/LANDSCAPE.md), [`papers/LEADERBOARD.md`](papers
 ## Repository Structure
 
 ```
-verify.py                      Proof verification pipeline (5 steps)
+verify.py                      Proof verification pipeline (7 steps, fail-closed)
 falsify.py                     36 falsification attacks + external audit
 
 proof/
   verify_logconcavity_rigorous.py   Rigorous IA [0,1.0] — mpmath.iv (52,898 subintervals)
   verify_logconcavity_arb.py        Primary IA [0,1] — Arb/FLINT ball arithmetic
-  verify_ia_1_to_3_arb.py           Primary IA [1,3] — Arb/FLINT ball arithmetic (101 checkpoints)
-  verify_algebraic_core.py          Algebraic core + far-tail bound
+  verify_ia_1_to_3_arb.py           Primary IA [1,3] — Arb/FLINT ball arithmetic (1,813 adaptive checks)
+  verify_ia_1_to_3.py               Cross-check [1,3] — mpmath.iv (101 checkpoints)
+  verify_weighted_comparisons.py    Far-tail weighted-comparisons certificate — Arb/FLINT
+  verify_algebraic_core.py          RETIRED 2026-11-22 — superseded (printed a withdrawn claim; evaluated none of its cited inequalities)
   verify_truncation_and_crosscheck.py  Truncation error + cross-validation
-  verify_ia_1_to_1_5.py             Cross-check [1.0,3.0] — mpmath.iv (101 checkpoints)
+  verify_ia_1_to_1_5.py             RETIRED 2026-11-22 — legacy C=204 perturbation script for [1, 1.5] (superseded; not a [1,3] cross-check)
 
 falsification/
   run_all.py              Run all 36 attacks (7 batches)
@@ -135,7 +137,7 @@ falsification/
 
 verification/
   certificate.json           Arb IA certificate (55,892 intervals)
-  proof_certificate_v2.json  Geiger-style formal certificate (9 steps, C1-C9)
+  proof_certificate_v2.json  Geiger-style formal certificate (9 steps, C1-C9) (historical; RH conclusion withdrawn — see verification/STATUS.json)
   generate_certificate_v2.py Certificate generator
   verify_certificate.py      Standalone certificate verifier
   + 14 audit documents
@@ -161,7 +163,7 @@ docs/
   PROOF_STRATEGY.md  Strategy notes
 
 lean4/
-  RHProof/Basic.lean  Lean 4 formalization (12 axioms, 4 proved, 0 sorry)
+  RHProof/Basic.lean  Lean 4 formalization (13 axioms, 6 proved + conditional assembly, 0 sorry)
 
 src/riemann/        Core library (zeta, zeros, li_criterion, davenport_heilbronn, …)
 tests/              Unit tests (10 tests, pytest)
@@ -183,9 +185,12 @@ Compiles with zero errors, zero `sorry`.
 | **PROVED** | `h_pos_for_nonneg` — h(u) = 2πe²ᵘ-3 > 0 (Real.pi_gt_three + nlinarith) |
 | **PROVED** | `log_h_d2_neg` — (log h)′′ < 0 (div_neg_of_neg_of_pos + pow_pos) |
 | **PROVED** | `log_phi1_d2_neg` — (log φ₁)′′ < 0 (log_h_d2_neg + linarith) |
-| **PROVED** | `riemann_hypothesis` — main theorem |
-| axiom | `polya_theorem`, `phi_even`, `phi_integrable`, `phi_superexp_decay`, `phi_real_analytic` |
-| axiom | `tail_decay`, `ia_verification_0_to_1`, `ia_verification_1_0_to_1_5`, `perturbation_bound_above_1_5` |
+| **PROVED MODULO AXIOMS** | `riemann_hypothesis` — conditional assembly from the 13 axioms; vacuous (the `polya_theorem` axiom is false) |
+| **PROVED** | `phi_positive_exp` — positivity of the exponential form |
+| **PROVED** | `phi1_pos` — positivity of φ₁ |
+| **PROVED** | `phi1_decay_bound` — decay bound for φ₁ |
+| axiom | `polya_theorem`, `phi_even`, `phi_integrable`, `phi_superexp_decay`, `phi_real_analytic`, `phi_log_concave` |
+| axiom | `ia_verification_0_to_1`, `ia_verification_1_to_3`, `perturbation_bound_above_3` |
 | axiom | `rh_iff_xi_real`, `XiHasOnlyRealZeros`, `RiemannHypothesis`, `log_concavity_from_three_parts` |
 
 ---
@@ -227,9 +232,9 @@ pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
 
 ## Dependencies
 
-**Core proof** (required):
+**Core proof** (required; pinned in `requirements.txt`):
 ```
-mpmath>=1.3    scipy>=1.10    numpy>=1.24
+mpmath    scipy    numpy    python-flint (Arb certificates)
 ```
 
 **Optional extras** (install with `pip install -e ".[extra]"`):
@@ -237,7 +242,7 @@ mpmath>=1.3    scipy>=1.10    numpy>=1.24
 | Extra | Install | Purpose |
 |-------|---------|------|
 | `dev` | `pip install -e ".[dev]"` | pytest, ruff |
-| `fast` | `pip install -e ".[fast]"` | gmpy2, python-flint (Arb IA) |
+| `fast` | `pip install -e ".[fast]"` | gmpy2 (python-flint is a core dependency) |
 | `aee` | `pip install -e ".[aee]"` | specsmith (AEE landscape analysis) |
 
 ---
@@ -270,7 +275,7 @@ pytest tests/        # 10 unit tests
   title  = {Certified Log-Concavity of the {R}iemann--{J}acobi Kernel
             and a Source Audit of a {P}\'{o}lya-Type Real-Zero Criterion},
   year   = {2026},
-  doi    = {10.5281/zenodo.20465036},
-  url    = {https://github.com/BitConcepts/riemann-solver}
+  doi    = {10.5281/zenodo.24445687},
+  url    = {https://github.com/AXIOVEX/riemann-solver}
 }
 ```

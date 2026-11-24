@@ -1,151 +1,230 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Tristen Kyle Pierson / BitConcepts Research
-"""Certify the n >= 6 truncation error and cross-validate the IA results.
+"""Truncation-error certificate for the [0,1] verifier + cross-validation.
 
-Part 1: Rigorous upper bound on sum_{n=6}^inf |phi_n(u)| for u in [0, 1.0]
-Part 2: Cross-validate Q_Phi values at selected points using high-precision
-        non-interval arithmetic vs our interval arithmetic results.
+The [0,1] interval verifiers (verify_logconcavity_rigorous.py,
+verify_logconcavity_arb.py) evaluate the 5-term partial sum Phi_5, not
+Phi.  Normalization throughout: Phi = 4 * sum_n phi_n, as in both
+verifiers (so margins and errors are in the same units).  This script certifies, uniformly on [0,1], that the truncation
+error in Q = Phi''*Phi - (Phi')^2 is far below the certified margin.
+
+Part 1 (uniform truncation bound).  With delta = Phi - Phi_5
+= sum_{n>=6} phi_n,
+    Q_Phi - Q_{Phi_5} = Phi_5*delta'' + Phi_5''*delta - 2*Phi_5'*delta'
+                        + delta*delta'' - (delta')^2.
+Uniform majorants for u in [0,1], n >= 6 (growth factors at u = 1,
+decay e^{-pi n^2} at u = 0):
+    |g_n|   <= (2 pi^2 n^4 + 3 pi n^2) e^{9/2}
+    |g_n'|  <= (9 pi^2 n^4 + (15/2) pi n^2) e^{9/2}
+    |g_n''| <= ((81/2) pi^2 n^4 + (75/4) pi n^2) e^{9/2}
+    |E_n|   <= e^{-pi n^2},  |E_n'| <= 2 pi n^2 e^2 |E_n|,
+    |E_n''| <= (4 pi n^2 e^2 + 4 pi^2 n^4 e^4) |E_n|,
+give |phi_n^{(k)}| <= M_k(n); the Delta_k = sum_{n>=6} M_k(n) are
+evaluated in mpmath.iv (finite sum n = 6..40 plus a certified geometric
+tail).  The sup norms of Phi_5^{(k)} on [0,1] are enclosed by iv
+evaluation of the finite sums on a grid of subintervals.  The propagated
+total is compared against the certified margin of the rigorous [0,1]
+run (read from results/verify_logconcavity_rigorous.json when present).
+
+Part 2 (cross-validation).  Q_{Phi_5}(u) is computed in float mpmath and
+in interval arithmetic at 10 points of [0,1]; the enclosures must
+contain the float values and be negative.
+
+Exit status: 0 iff Part 1 certifies (total < margin) AND Part 2 passes
+(fail-closed).  Output: results/truncation_crosscheck.json.
+
+History: the previous version bounded only delta (not delta', delta''),
+compared it directly to the Q margin, never exited nonzero, and printed
+its headline bound unconditionally.  The manuscript's former "safety
+factor exceeds 2.9 x 10^30" rested on that non-uniform derivation.
+See Spec 004 / round-1 adjudication, Finding C-3.2.
 """
+
+import json
+import os
+import sys
+
 import mpmath as mp
 from mpmath import iv
-import json
 
-mp.mp.dps = 80
-iv.dps = 60
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DPS = 60
+N_MAJORANT = 40        # majorant sums n = 6..40, tail bounded beyond
+N_GRID = 20            # subintervals for the Phi_5 sup-norm enclosures
 
-print("=" * 72)
-print("  PART 1: TRUNCATION ERROR CERTIFICATION")
-print("  Rigorous bound on sum_{n>=6} |phi_n(u)| for u in [0, 1.0]")
-print("=" * 72)
 
-# For n >= 6, u in [0, 1]:
-# |phi_n(u)| <= (2*pi^2*n^4*e^{9/2} + 3*pi*n^2*e^{5/2}) * e^{-pi*n^2*1}
-# (using u <= 1, so e^{9u/2} <= e^{9/2}, e^{-pi*n^2*e^{2u}} <= e^{-pi*n^2})
-# Actually for u in [0,1]: e^{2u} >= 1, so e^{-pi*n^2*e^{2u}} <= e^{-pi*n^2}
+# ---------------------------------------------------------------------------
+# Closed-form phi_n and derivatives (works with mp or iv via duck typing)
+# ---------------------------------------------------------------------------
 
-# Tighter: for u in [0,1], e^{2u} in [1, e^2], so
-# phi_n(u) <= (2*pi^2*n^4*e^{9/2}) * e^{-pi*n^2}  (using e^{9u/2} <= e^{9/2})
+def phi_n_all(n, u, lib):
+    pi = lib.pi
+    n2 = n * n
+    n4 = n2 * n2
+    e5h = lib.exp(lib.mpf(5) / 2 * u)
+    e9h = lib.exp(lib.mpf(9) / 2 * u)
+    e2u = lib.exp(2 * u)
+    e4u = e2u * e2u
+    g = 2 * pi ** 2 * n4 * e9h - 3 * pi * n2 * e5h
+    gd1 = 9 * pi ** 2 * n4 * e9h - lib.mpf(15) / 2 * pi * n2 * e5h
+    gd2 = lib.mpf(81) / 2 * pi ** 2 * n4 * e9h - lib.mpf(75) / 4 * pi * n2 * e5h
+    E = lib.exp(-pi * n2 * e2u)
+    Ed1 = -2 * pi * n2 * e2u * E
+    Ed2 = (-4 * pi * n2 * e2u + 4 * pi ** 2 * n4 * e4u) * E
+    return g * E, gd1 * E + g * Ed1, gd2 * E + 2 * gd1 * Ed1 + g * Ed2
 
-print()
-# Compute the bound using interval arithmetic
-total_bound = iv.mpf(0)
-print("Individual term bounds |phi_n|_max for n >= 6:")
-for n in range(6, 20):
-    n_iv = iv.mpf(n)
-    # Upper bound on |phi_n(u)| for u in [0, 1]
-    # phi_n = (2*pi^2*n^4*e^{9u/2} - 3*pi*n^2*e^{5u/2}) * e^{-pi*n^2*e^{2u}}
-    # <= 2*pi^2*n^4*e^{9/2} * e^{-pi*n^2}  (e^{9u/2} <= e^{9/2}, decay >= e^{-pi*n^2*e^2})
-    # Actually use the worst case: max of phi_n over [0,1]
-    # Since phi_n is dominated by decay, the max is at u=0
-    bound_n = 4 * (2 * iv.pi**2 * n_iv**4 * iv.exp(iv.mpf(9)/2) ) * iv.exp(-iv.pi * n_iv**2)
-    if float(bound_n.b) > 0:
-        print("  n=%2d: |4*phi_n| <= %.4e" % (n, float(bound_n.b)))
-    else:
-        print("  n=%2d: underflows" % n)
-    total_bound += bound_n
 
-# Add tail bound for n >= 20
-# sum_{n>=20} n^4 * e^{-pi*n^2}: each term underflows below 10^-300
-tail_20 = iv.mpf(0)
-for n in range(20, 50):
-    n_iv = iv.mpf(n)
-    tail_20 += 4 * 2 * iv.pi**2 * n_iv**4 * iv.exp(iv.mpf(9)/2) * iv.exp(-iv.pi * n_iv**2)
+def majorant(k, n):
+    """iv upper bound M_k(n) >= |phi_n^{(k)}(u)| for all u in [0,1]."""
+    pi = iv.pi
+    n2 = iv.mpf(n * n)
+    n4 = n2 * n2
+    e92 = iv.exp(iv.mpf(9) / 2)
+    D = iv.exp(-pi * n2)
+    G0 = (2 * pi ** 2 * n4 + 3 * pi * n2) * e92
+    if k == 0:
+        return G0 * D
+    G1 = (9 * pi ** 2 * n4 + iv.mpf(15) / 2 * pi * n2) * e92
+    if k == 1:
+        return (G1 + G0 * 2 * pi * n2 * iv.exp(2)) * D
+    G2 = (iv.mpf(81) / 2 * pi ** 2 * n4 + iv.mpf(75) / 4 * pi * n2) * e92
+    Efac = 4 * pi * n2 * iv.exp(2) + 4 * pi ** 2 * n4 * iv.exp(4)
+    return (G2 + 2 * G1 * 2 * pi * n2 * iv.exp(2) + G0 * Efac) * D
 
-total_bound += tail_20
 
-print()
-print("Total bound on |sum_{n>=6} 4*phi_n(u)| for u in [0, 1.0]:")
-print("  <= %.4e" % float(total_bound.b))
-print("  Bound: < 10^-42 (dominated by the n=6 term)")
-print("  Q_Phi margin: >= 3.36e-12 (from IA verification)")
-print("  Truncation / margin ratio: < %.1e (safe by factor %.0e)" %
-      (float(total_bound.b) / 3.36e-12, 3.36e-12 / float(total_bound.b)))
+def delta_bounds():
+    """Uniform iv bounds Delta_k >= sup_{[0,1]} |delta^{(k)}|, k = 0,1,2,
+    with delta = 4 * sum_{n>=6} phi_n (the verifiers' normalization)."""
+    deltas = []
+    for k in range(3):
+        total = iv.mpf(0)
+        for n in range(6, N_MAJORANT + 1):
+            total += majorant(k, n)
+        # Certified ratio bound for n >= N_MAJORANT: the majorants are
+        # polynomials in n (degree <= 8) times e^{-pi n^2}, so
+        # M(n+1)/M(n) <= ((n+1)/n)^8 * e^{-pi*(2n+1)} < 1/2.
+        n = N_MAJORANT
+        r = (iv.mpf(n + 1) / n) ** 8 * iv.exp(-iv.pi * (2 * n + 1))
+        assert float(r.b) < 0.5, "majorant ratio bound not < 1/2"
+        total += majorant(k, n + 1) / (1 - r)
+        deltas.append(4 * total)
+    return deltas
 
-print()
-print("=" * 72)
-print("  PART 2: CROSS-VALIDATION OF Q_Phi VALUES")
-print("  Compare rigorous IA vs high-precision floating-point")
-print("=" * 72)
 
-# Compute Q_Phi at selected points using TWO independent methods:
-# Method A: Interval arithmetic (our verify_logconcavity_rigorous.py approach)
-# Method B: High-precision floating-point with exact symbolic derivatives
+def phi5_sup_norms():
+    """mpf upper bounds on sup_{[0,1]} |Phi_5^{(k)}| via a subinterval grid."""
+    sups = [mp.mpf(0), mp.mpf(0), mp.mpf(0)]
+    for j in range(N_GRID):
+        u_iv = iv.mpf([j / N_GRID, (j + 1) / N_GRID])
+        sums = [iv.mpf(0), iv.mpf(0), iv.mpf(0)]
+        for n in range(1, 6):
+            p, pd1, pd2 = phi_n_all(n, u_iv, iv)
+            sums[0] += p
+            sums[1] += pd1
+            sums[2] += pd2
+        for k in range(3):
+            sups[k] = max(sups[k], abs(4 * sums[k]).b)
+    return sups
 
-def phi_n_derivs_float(n, u):
-    """Exact symbolic derivatives in floating point."""
-    pi = mp.pi; n2 = mp.mpf(n)**2; n4 = n2**2
-    e9u2 = mp.exp(mp.mpf(9)*u/2); e5u2 = mp.exp(mp.mpf(5)*u/2)
-    e2u = mp.exp(2*u); e4u = e2u**2
-    g = 2*pi**2*n4*e9u2 - 3*pi*n2*e5u2
-    gp = 9*pi**2*n4*e9u2 - mp.mpf(15)*pi*n2*e5u2/2
-    gpp = mp.mpf(81)*pi**2*n4*e9u2/2 - mp.mpf(75)*pi*n2*e5u2/4
-    E = mp.exp(-pi*n2*e2u)
-    Ep = -2*pi*n2*e2u*E
-    Epp = (-4*pi*n2*e2u + 4*pi**2*n4*e4u)*E
-    return g*E, gp*E + g*Ep, gpp*E + 2*gp*Ep + g*Epp
 
-def phi_n_derivs_iv(n, u_iv):
-    """Exact symbolic derivatives in interval arithmetic."""
-    pi = iv.pi; n2 = iv.mpf(n)**2; n4 = n2**2
-    e9u2 = iv.exp(iv.mpf(9)*u_iv/2); e5u2 = iv.exp(iv.mpf(5)*u_iv/2)
-    e2u = iv.exp(2*u_iv); e4u = e2u**2
-    g = 2*pi**2*n4*e9u2 - 3*pi*n2*e5u2
-    gp = 9*pi**2*n4*e9u2 - iv.mpf(15)*pi*n2*e5u2/2
-    gpp = iv.mpf(81)*pi**2*n4*e9u2/2 - iv.mpf(75)*pi*n2*e5u2/4
-    E = iv.exp(-pi*n2*e2u)
-    Ep = -2*pi*n2*e2u*E
-    Epp = (-4*pi*n2*e2u + 4*pi**2*n4*e4u)*E
-    return g*E, gp*E + g*Ep, gpp*E + 2*gp*Ep + g*Epp
+def main():
+    mp.mp.dps = DPS
+    iv.dps = DPS
 
-print()
-print("u_val      | Q_float (80-digit)    | Q_iv_lo              | Q_iv_hi              | Agree?")
-print("-" * 100)
+    print("=" * 72)
+    print("  TRUNCATION CERTIFICATE [0,1] + CROSS-VALIDATION")
+    print("  Uniform bounds on delta, delta', delta'' (mpmath.iv, 60 digits)")
+    print("=" * 72)
 
-all_agree = True
-for u_val in [0.0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9, 0.95, 0.99, 1.0]:
-    u = mp.mpf(u_val)
-    
-    # Method A: floating point
-    f = fp = fpp = mp.mpf(0)
-    for n in range(1, 6):
-        a, b, c = phi_n_derivs_float(n, u)
-        f += a; fp += b; fpp += c
-    f *= 4; fp *= 4; fpp *= 4
-    Q_float = float(fpp * f - fp**2)
-    
-    # Method B: interval arithmetic (point interval)
-    u_iv = iv.mpf([u_val, u_val])
-    fi = fpi = fppi = iv.mpf(0)
-    for n in range(1, 6):
-        a, b, c = phi_n_derivs_iv(n, u_iv)
-        fi += a; fpi += b; fppi += c
-    fi *= 4; fpi *= 4; fppi *= 4
-    Q_iv = fppi * fi - fpi**2
-    
-    # Check agreement with tolerance for ULP-level differences
-    # IA point intervals may differ from float by rounding at the last ULP
-    margin = max(abs(float(Q_iv.b) - float(Q_iv.a)), abs(Q_float) * 1e-14)
-    agree = (float(Q_iv.a) - margin) <= Q_float <= (float(Q_iv.b) + margin)
-    if not agree:
-        all_agree = False
-    
-    print("u=%.2f     | %.12e | %.12e | %.12e | %s" % 
-          (u_val, Q_float, float(Q_iv.a), float(Q_iv.b), "YES" if agree else "NO"))
+    # ---- Part 1: uniform truncation bound
+    D0, D1, D2 = delta_bounds()
+    S0, S1, S2 = phi5_sup_norms()
+    total = D2 * S0 + S2 * D0 + 2 * S1 * D1 + D0 * D2 + D1 ** 2
 
-print()
-if all_agree:
-    print("CROSS-VALIDATION PASSED: All floating-point values lie within IA enclosures.")
-else:
-    print("CROSS-VALIDATION FAILED: Some values disagree!")
+    margin = iv.mpf("3.36e-12")  # fallback: the certified [0,1] margin of record
+    rig_path = os.path.join(ROOT, "results", "verify_logconcavity_rigorous.json")
+    if os.path.exists(rig_path):
+        with open(rig_path) as f:
+            rig = json.load(f)
+        if rig.get("max_Q_upper") is not None:
+            margin = abs(iv.mpf(rig["max_Q_upper"]))
 
-# Save results
-results = {
-    "truncation_bound": float(total_bound.b),
-    "truncation_bound_below_1e42": float(total_bound.b) < 1e-42,
-    "q_phi_margin": 3.36e-12,
-    "safety_factor": 3.36e-12 / float(total_bound.b),
-    "cross_validation_passed": all_agree,
-}
-with open("results/truncation_crosscheck.json", "w") as f:
-    json.dump(results, f, indent=2)
-print("-> results/truncation_crosscheck.json")
+    # Decisive comparison on interval endpoints, in iv arithmetic,
+    # BEFORE any float conversion (R2-4 item 9, corrected 2026-11-23):
+    # Part 1 is certified iff the propagated bound's upper endpoint
+    # lies strictly below the margin's lower endpoint. Floats are
+    # used only for printing and for the JSON record below.
+    part1_ok = total.b < margin.a
+    total_hi = float(total.b)
+    margin_f = float(margin)
+    safety = margin_f / total_hi if total_hi > 0 else float("inf")
+
+    print(f"  Delta_0 (sup |delta|)   <= {float(D0.b):.6e}")
+    print(f"  Delta_1 (sup |delta'|)  <= {float(D1.b):.6e}")
+    print(f"  Delta_2 (sup |delta''|) <= {float(D2.b):.6e}")
+    print(f"  sup |Phi_5|   <= {float(S0):.6f}")
+    print(f"  sup |Phi_5'|  <= {float(S1):.6f}")
+    print(f"  sup |Phi_5''| <= {float(S2):.6f}")
+    print(f"  Propagated |Q_Phi - Q_Phi5| <= {float(total.b):.6e} on [0,1]")
+    print(f"  Certified [0,1] margin: {margin_f:.4e}")
+    print(f"  Safety factor: {safety:.4e}")
+    print(f"  Part 1: {'CERTIFIED' if part1_ok else '*** NOT CERTIFIED ***'}")
+
+    # ---- Part 2: float vs interval cross-validation of Q at 10 points
+    print()
+    print("  Cross-validation (float mpmath vs mpmath.iv):")
+    xv_ok = True
+    for i in range(10):
+        u_f = 0.05 + i * 0.1
+        s = [mp.mpf(0), mp.mpf(0), mp.mpf(0)]
+        for n in range(1, 6):
+            p, pd1, pd2 = phi_n_all(n, mp.mpf(u_f), mp)
+            s[0] += p
+            s[1] += pd1
+            s[2] += pd2
+        s = [4 * x for x in s]
+        q_float = s[2] * s[0] - s[1] ** 2
+        u_iv = iv.mpf([u_f - 1e-9, u_f + 1e-9])
+        si = [iv.mpf(0), iv.mpf(0), iv.mpf(0)]
+        for n in range(1, 6):
+            p, pd1, pd2 = phi_n_all(n, u_iv, iv)
+            si[0] += p
+            si[1] += pd1
+            si[2] += pd2
+        si = [4 * x for x in si]
+        q_iv = si[2] * si[0] - si[1] ** 2
+        contains = float(q_iv.a) <= float(q_float) <= float(q_iv.b)
+        negative = float(q_iv.b) < 0
+        ok = contains and negative
+        xv_ok = xv_ok and ok
+        print(f"    u={u_f:.2f}: Q_float={float(q_float):>14.6e}  "
+              f"Q_iv=[{float(q_iv.a):.4e}, {float(q_iv.b):.4e}]  "
+              f"{'OK' if ok else '*** MISMATCH ***'}")
+    print(f"  Part 2: {'PASSED' if xv_ok else '*** FAILED ***'}")
+
+    passed = bool(part1_ok and xv_ok)
+    print()
+    print(f"  *** {'ALL CHECKS PASSED' if passed else 'FAILURES — REVIEW ABOVE'} ***")
+    print("=" * 72)
+
+    result = {
+        "delta_0_bound": float(D0.b),
+        "delta_1_bound": float(D1.b),
+        "delta_2_bound": float(D2.b),
+        "sup_phi5": [float(s) for s in (S0, S1, S2)],
+        "truncation_bound": total_hi,
+        "q_phi_margin": margin_f,
+        "safety_factor": safety,
+        "cross_validation_passed": bool(xv_ok),
+        "passed": passed,
+    }
+    out_path = os.path.join(ROOT, "results", "truncation_crosscheck.json")
+    with open(out_path, "w") as f:
+        json.dump(result, f, indent=2)
+    print("  -> results/truncation_crosscheck.json")
+    return result
+
+
+if __name__ == "__main__":
+    result = main()
+    sys.exit(0 if result["passed"] else 1)

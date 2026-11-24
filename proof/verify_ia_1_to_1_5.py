@@ -1,6 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Tristen Kyle Pierson / BitConcepts Research
-"""Extended certification: (log Phi)''(u) < 0 on [1.0, 3.0].
+"""SUPERSEDED (2026-11-22, Spec 004 repair pass).
+
+Legacy C=204 perturbation script for [1.0, 1.5].  It is NOT the [1,3]
+mpmath.iv cross-check (that is proof/verify_ia_1_to_3.py), despite the
+label the pipeline formerly gave it, and it is removed from the
+pipeline.  Kept in place for the historical record only.
+
+Extended certification: (log Phi)''(u) < 0 on [1.0, 3.0].
 
 Direct IA on Q = Phi''*Phi - (Phi')^2 for u > 1.0 fails due to CATASTROPHIC
 CANCELLATION: both Phi''*Phi and (Phi')^2 are ~6800*Phi^2, while Q ~ -169*Phi^2

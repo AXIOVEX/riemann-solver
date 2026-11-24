@@ -16,6 +16,16 @@
   year    = {1950}
 }
 
+@article{csordas1988,
+  author  = {Csordas, George and Varga, Richard S.},
+  title   = {Moment Inequalities and the {R}iemann Hypothesis},
+  journal = {Constructive Approximation},
+  volume  = {4},
+  pages   = {175--198},
+  year    = {1988},
+  doi     = {10.1007/BF02075457}
+}
+
 @article{csordas1989,
   author  = {Csordas, George and Varga, Richard S.},
   title   = {Integral Transforms and the {L}aguerre--{P}{\'o}lya Class},
@@ -174,8 +184,10 @@
   note    = {Proves a NEW necessary and sufficient condition for the Fourier transform of a
              strictly logarithmically concave admissible kernel to possess only real zeros.
              The N\&S condition involves the {\em generalized real Laguerre inequalities},
-             not log-concavity alone. This implies that log-concavity is necessary but
-             NOT sufficient (for $C^{\infty}$ kernels) for real zeros of the Fourier transform.
+             not log-concavity alone. For a strictly log-concave admissible kernel,
+             Theorem 3.7 characterizes membership of its Fourier transform in the
+             Laguerre--P\'olya class by positive definiteness of every associated kernel;
+             it does not assert that log-concavity of the input kernel is necessary.
              For strictly log-concave kernels, there exist admissible kernels whose Fourier
              transforms have complex zeros (those failing higher Laguerre inequalities).}
 }
@@ -265,12 +277,25 @@
 
 @article{cardon2002,
   author  = {Cardon, David A.},
-  title   = {Fourier transforms having only real zeros},
+  title   = {Convolution operators and zeros of entire functions},
   journal = {Proceedings of the American Mathematical Society},
   volume  = {130},
   number  = {6},
   pages   = {1725--1734},
   year    = {2002},
-  note    = {Discusses P\'olya's Hilfssatz~II in the context of Fourier transforms with only real zeros.
-             Cited by multiple sources for the log-concavity/Hilfssatz connection.}
+  note    = {A distinct paper from Cardon (2005). An earlier version of this
+             entry conflated the two papers; corrected 2026-11-22.}}
+
+@article{cardon2005,
+  author  = {Cardon, David A.},
+  title   = {Fourier transforms having only real zeros},
+  journal = {Proceedings of the American Mathematical Society},
+  volume  = {133},
+  pages   = {1349--1356},
+  year    = {2005},
+  doi     = {10.1090/S0002-9939-04-07677-4},
+  note    = {Lemma~2 is ``P\'olya's Hilfssatz~II'', sourced there to
+             P\'olya (1926), Acta Math.~48, 305--317: a shift-sum
+             preservation lemma for real-rootedness, not the
+             log-concavity criterion.}
 }

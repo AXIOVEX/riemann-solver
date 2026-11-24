@@ -1,6 +1,15 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Tristen Kyle Pierson / BitConcepts Research
-"""Verify the EXACT condition of de Bruijn's 1950 theorem for the Xi kernel.
+"""SUPERSEDED (2026-11-22, Spec 004 repair pass).
+
+Exploratory script, removed from the verification pipeline.  Its
+framing asserts that Polya's Satz II yields the real-rootedness
+criterion directly; the manuscript's source audit refutes that (Satz II
+is a statement about multiplier sequences, and the criterion itself is
+false — see the counterexample in the manuscript).  Nothing in the
+proof depends on this script.  Kept for the historical record only.
+
+Verify the EXACT condition of de Bruijn's 1950 theorem for the Xi kernel.
 
 de Bruijn (1950, Duke Math J. 17, Theorem 1) states:
 

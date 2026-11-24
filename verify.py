@@ -2,45 +2,58 @@
 # Copyright (c) 2026 Tristen Kyle Pierson / BitConcepts Research
 """Run the complete proof verification pipeline.
 
-This script executes the five verification steps of the RH proof:
-  1. Rigorous IA: Q_Phi < 0 on [0, 1.0] (52,898 subintervals, 60-digit)
-  2. Algebraic core + perturbation bound (C=204) for u > 1.5
-  3. Truncation error certification + cross-validation
-  4. Polya/de Bruijn condition check
-  5. Extended cert: (log Phi)'' < 0 on [1.0, 3.0] (algebraic, 101 checkpoints)
+Steps (all fail-closed; a step counts as passed only on exit code 0):
+  1. Arb/FLINT primary IA: Q_Phi < 0 on [0, 1.0] (55,892 subintervals)
+  2. Rigorous mpmath.iv IA: Q_Phi < 0 on [0, 1.0] (52,898 subintervals)
+  3. Truncation error certification (uniform, [0,1]) + cross-validation
+  4. Arb/FLINT primary cert: (log Phi)'' < 0 on [1.0, 3.0]
+     (direct DeltaQ enclosure, adaptive ball grid)
+  5. mpmath.iv cross-check: (log Phi)'' < 0 on [1.0, 3.0] (101 checkpoints)
+  6. Weighted tail comparisons for u >= 3 (far-tail lemma constants)
+  7. Galerkin stabilization check
+
+The final verdict additionally requires cross_validation_passed = true
+in the truncation_crosscheck.json written by THIS run.  A step that
+reports SKIP (missing optional dependency) counts as FAILED: in the
+certified pipeline a step that verified nothing is not a pass.
+
+Retired from the pipeline in the Spec 004 repair pass:
+verify_algebraic_core.py (legacy; printed a withdrawn proof claim),
+verify_ia_1_to_1_5.py (legacy C=204 perturbation script, formerly
+mislabeled as the [1,3] cross-check), verify_debruijn_condition.py
+(exploratory; not part of the proof).  All three are banner-marked
+SUPERSEDED in place.
 
 Usage:
-    python verify.py           # Full pipeline (~70s)
-    python verify.py --quick   # Skip the slow IA step, run steps 2-5 only (~2s)
+    python verify.py           # Full pipeline
+    python verify.py --quick   # Skip the two [0,1] IA steps (partial verdict)
 """
 import argparse
 import subprocess
 import sys
 import os
 import json
+import time
 
 PROOF_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "proof")
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
 
-# Steps skipped because an optional dependency was missing (filled by run_step)
-SKIPPED_STEPS = []
-
 STEPS = [
-    ("verify_logconcavity_rigorous.py", "Rigorous IA: 52,898 subintervals on [0, 1.0]"),
-    ("verify_algebraic_core.py",        "Algebraic core + perturbation bound (C=204)"),
-    ("verify_truncation_and_crosscheck.py", "Truncation error + cross-validation"),
-    ("verify_debruijn_condition.py",    "Polya/de Bruijn condition check"),
-    ("verify_ia_1_to_3_arb.py",          "Arb/FLINT primary cert: (log Phi)'' < 0 on [1.0, 3.0] (101 ball-arithmetic checkpoints)"),
-    ("verify_ia_1_to_1_5.py",           "mpmath.iv cross-check: (log Phi)'' < 0 on [1.0, 3.0] (101 algebraic checkpoints)"),
-    ("verify_galerkin_extended.py",     "Galerkin stabilization: CvS form plateau, eigenvector c-invariance (--quick)"),
+    ("verify_logconcavity_arb.py",       "Arb/FLINT primary IA: 55,892 subintervals on [0, 1.0]"),
+    ("verify_logconcavity_rigorous.py",  "Rigorous IA: 52,898 subintervals on [0, 1.0]"),
+    ("verify_truncation_and_crosscheck.py", "Truncation error (uniform) + cross-validation"),
+    ("verify_ia_1_to_3_arb.py",          "Arb/FLINT primary cert: (log Phi)'' < 0 on [1.0, 3.0] (direct DeltaQ enclosure)"),
+    ("verify_ia_1_to_3.py",              "mpmath.iv cross-check: (log Phi)'' < 0 on [1.0, 3.0] (101 checkpoints)"),
+    ("verify_weighted_comparisons.py",   "Weighted tail comparisons: S_6 <= 5*S_4, S_8 <= 32*S_4 for u >= 3"),
+    ("verify_galerkin_extended.py",      "Galerkin stabilization: CvS form plateau, eigenvector c-invariance (--quick)"),
 ]
 
+QUICK_SKIP = {"verify_logconcavity_arb.py", "verify_logconcavity_rigorous.py"}
 
 # Scripts that require extra flags when run via the pipeline
 # CI-specific: limit Galerkin to 3 cutoffs (c=7,11,13) for speed on the test matrix;
 # the full 9-cutoff quick run is preserved for local use via `python proof/verify_galerkin_extended.py --quick`
-import os as _os
-_GALERKIN_FLAGS = ["--quick", "--cutoff-max", "13"] if _os.getenv("CI") else ["--quick"]
+_GALERKIN_FLAGS = ["--quick", "--cutoff-max", "13"] if os.getenv("CI") else ["--quick"]
 _SCRIPT_FLAGS = {
     "verify_galerkin_extended.py": _GALERKIN_FLAGS,
 }
@@ -49,7 +62,7 @@ _SCRIPT_FLAGS = {
 def run_step(script, desc, quiet=False):
     path = os.path.join(PROOF_DIR, script)
     if not os.path.exists(path):
-        print("  SKIP: %s not found" % script)
+        print("  FAIL: %s not found" % script)
         return False
 
     extra_flags = _SCRIPT_FLAGS.get(script, [])
@@ -68,11 +81,11 @@ def run_step(script, desc, quiet=False):
             print(result.stderr[-500:])
         return False
 
-    # Check for SKIP (optional dependency not available)
+    # A SKIP report (optional dependency missing) is a FAILED step in the
+    # certified pipeline: the step verified nothing.
     if result.stdout and result.stdout.strip().startswith("SKIP:"):
-        print("  " + result.stdout.strip().split("\n")[0])
-        SKIPPED_STEPS.append(script)
-        return True  # Treat skip as pass (optional step)
+        print("  FAIL (step skipped: %s)" % result.stdout.strip().split("\n")[0])
+        return False
 
     if not quiet:
         # Print last few meaningful lines
@@ -86,31 +99,35 @@ def run_step(script, desc, quiet=False):
 def main():
     parser = argparse.ArgumentParser(description="Run RH proof verification pipeline")
     parser.add_argument("--quick", action="store_true",
-                        help="Skip the slow rigorous IA step (~70s)")
+                        help="Skip the two [0,1] IA steps (partial verdict)")
     parser.add_argument("--quiet", action="store_true",
                         help="Suppress step output")
     args = parser.parse_args()
 
-    steps = STEPS[1:] if args.quick else STEPS
+    steps = [(s, d) for (s, d) in STEPS
+             if not (args.quick and s in QUICK_SKIP)]
 
     print("=" * 72)
     print("  RH PROOF VERIFICATION PIPELINE")
-    print("  %d steps%s" % (len(steps), " (quick mode — skipping IA)" if args.quick else ""))
+    print("  %d steps%s" % (len(steps), " (quick mode — [0,1] IA steps skipped)" if args.quick else ""))
     print("=" * 72)
 
+    run_start = time.time()
     passed = 0
     for i, (script, desc) in enumerate(steps, 1):
         print("\n[%d/%d] %s" % (i, len(steps), desc))
         if run_step(script, desc, quiet=args.quiet):
             passed += 1
 
-    # Check cross-validation result
+    # Cross-validation enters the final verdict, and only from the file
+    # written by this run (a stale file from an earlier run does not count).
     xv_path = os.path.join(RESULTS_DIR, "truncation_crosscheck.json")
     xv_ok = False
-    if os.path.exists(xv_path):
+    if os.path.exists(xv_path) and os.path.getmtime(xv_path) >= run_start - 1:
         with open(xv_path) as f:
             xv = json.load(f)
-        xv_ok = xv.get("cross_validation_passed", False)
+        xv_ok = bool(xv.get("cross_validation_passed", False)
+                     and xv.get("passed", False))
 
     print("\n" + "=" * 72)
     print("  RESULTS: %d/%d steps passed" % (passed, len(steps)))
@@ -123,16 +140,10 @@ def main():
                 ia = json.load(f)
             print("  IA certified: %d/%d subintervals" % (ia["certified"], ia["n_subintervals"]))
 
-    if SKIPPED_STEPS:
-        print("  SKIPPED (optional dependency missing): %s" % ", ".join(SKIPPED_STEPS))
-
     print("=" * 72)
-    ok = passed == len(steps)
-    if SKIPPED_STEPS and os.getenv("CI"):
-        # In CI every dependency is installed on purpose; a skip there means
-        # the environment regressed and a step silently verified nothing.
-        print("  ERROR: steps were skipped in CI (see above)")
-        ok = False
+    ok = (passed == len(steps)) and xv_ok
+    if args.quick:
+        print("  NOTE: quick mode — verdict covers only the steps run.")
     sys.exit(0 if ok else 1)
 
 

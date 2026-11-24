@@ -1,0 +1,14 @@
+{
+  "claim": "S_6(u) <= 5*S_4(u) and S_8(u) <= 32*S_4(u) for all u >= 3",
+  "method": "Arb/FLINT ball arithmetic via python-flint; n=2 domination reduces each inequality to a T-sum at the worst case u=3; T-sums are decreasing in u (each summand is), finite sum n=3..40 plus certified geometric tail bound",
+  "precision_bits": 256,
+  "finite_terms": 40,
+  "T6_at_3_upper": "[2.328163670430727338636455314308984474139066882361971766986720017438796974480e-2750 +/- 5.13e-2827]",
+  "T6_required_below": 16,
+  "T8_at_3_upper": "[2.852000496277640989829657760028505980820356930893415414558732021362526293738e-2749 +/- 3.84e-2825]",
+  "T8_required_below": 256,
+  "eps_star_3_upper": "[1.655888450464767945051957922753019447055544180207717931360389844327189511136e-1650 +/- 2.44e-1726]",
+  "eps_star_3_required_below": "1e-1636",
+  "passed": true,
+  "time_s": 0.0
+}

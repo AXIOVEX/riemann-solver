@@ -14,9 +14,13 @@ are computed exactly by the product rule + chain rule.
 """
 
 import json
+import os
+import sys
 import time
 import mpmath as mp
 from mpmath import iv
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Configuration
 DPS = 60
@@ -191,10 +195,13 @@ def main():
         "rigorous": True,
         "note": "Adaptive grid: coarse on [0, %.3f], fine on [%.3f, %.1f]" % (U_SPLIT, U_SPLIT, U_MAX),
     }
-    with open("results/verify_logconcavity_rigorous.json", "w") as f:
+    out_path = os.path.join(ROOT, "results", "verify_logconcavity_rigorous.json")
+    with open(out_path, "w") as f:
         json.dump(result, f, indent=2)
     print("  -> results/verify_logconcavity_rigorous.json")
+    return result
 
 
 if __name__ == "__main__":
-    main()
+    _result = main()
+    sys.exit(0 if _result["all_certified"] else 1)

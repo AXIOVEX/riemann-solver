@@ -1,6 +1,18 @@
 # Pólya Theorem Primary Source Verification
 
-## Status: VERIFIED via Csordas-Varga 1989 (primary text accessed)
+> **SUPERSEDED — 2026-11-22 (Spec 004 repair pass, RT-10).** This document
+> is an early audit artifact. Its conclusion ("VERIFIED") is **superseded**
+> by the source audit in the June 2026 manuscript (paper/main.tex, "Source
+> audit" section and Appendix C), which reached the opposite conclusion:
+> no verified primary-source statement of a Pólya-type criterion
+> (kernel log-concavity implies real-rootedness of the Fourier transform)
+> exists in the audited literature. The "Hypothetical Criterion" formulated
+> there has since been **refuted** by an explicit counterexample (see the
+> manuscript, Proposition "counterexample", and the program's round-1
+> adjudication record). Do not cite this document for the status of the
+> criterion; it is retained for provenance only.
+
+## Status: SUPERSEDED (see banner above). Original heading: VERIFIED via Csordas-Varga 1989 (primary text accessed)
 
 ## Source Chain
 
